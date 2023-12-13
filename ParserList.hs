@@ -1,25 +1,33 @@
 import Control.Applicative
 import Data.Char (isDigit, isSpace)
 
--- ParseurList.hs
+-- Basic Parser
 newtype Parser a = Parser { runParser :: String -> Maybe (a, String) }
 
--- Instance Functor
 instance Functor Parser where
-    fmap f (Parser p) = Parser $ \input -> fmap (\(a, rest) -> (f a, rest)) (p input)
+    -- Allow mapping of function on first value of parser
+    fmap f (Parser p) = Parser $ \input ->
+        fmap (\(a, rest) -> (f a, rest)) (p input)
 
--- Instance Applicative
 instance Applicative Parser where
+    -- Inject value in parser
     pure a = Parser $ \input -> Just (a, input)
+
+    -- combine parser of char & int
     (Parser p1) <*> (Parser p2) = Parser $ \input ->
         case p1 input of
-            Just (f, rest) -> fmap (\(a, rest') -> (f a, rest')) (p2 rest)
+            Just (f, rest) ->
+                fmap (\(a, rest') -> (f a, rest')) (p2 rest)
             Nothing -> Nothing
 
 -- Instance Alternative
 instance Alternative Parser where
+    -- Error_handling
     empty = Parser $ const Nothing
-    (Parser p1) <|> (Parser p2) = Parser $ \input -> p1 input <|> p2 input
+
+    -- If one parser fail (like only int and char parser fail, use the onter here int parser)
+    (Parser p1) <|> (Parser p2) = Parser $ \input ->
+        p1 input <|> p2 input
 
 -- Apply parsing and print
 parse :: Show a => Parser a -> String -> IO ()
