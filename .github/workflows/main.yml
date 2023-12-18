@@ -49,14 +49,18 @@ jobs:
         run: |
           # Add commands to run tests here
 
-      # You can add more steps based on your project's requirements
-
-      # Add a new step to clone your personal repo to your school repo
       - name: Clone and Push to School Repo
         run: |
-          git clone --depth=1 https://github.com/Raymondbty/Glad0s_mirror.git
+          # Configure the SSH key
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+          # Clone and push to the school repo
+          git clone --depth=1 git@github.com:Raymondbty/Glad0s_mirror.git
           cd Glad0s_mirror
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          git remote add school_repo https://github.com/EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git
+          git remote add school_repo git@github.com:EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git
           git push -u school_repo main
