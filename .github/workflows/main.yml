@@ -1,4 +1,4 @@
-name: attempt9
+name: attempt10
 
 on: [push]
 
@@ -16,3 +16,8 @@ jobs:
         with:
           target_repo_url: git@github.com:EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git
           ssh_private_key: ${{ secrets.SSH_KEY }}
+          # Ajoutez ces lignes pour stocker la clé privée dans un fichier temporaire
+          run: |
+            echo "$SSH_KEY" > /github/home/my_ssh_key
+            chmod 600 /github/home/my_ssh_key
+            INPUT_SSH_PRIVATE_KEY: /github/home/my_ssh_key
