@@ -5,7 +5,7 @@ data Ast =
   | Symbol String                                  -- Symbolic expression
   | BooleanLiteral Bool                            -- Boolean literal
   | Call { functionName :: String, arguments :: [Ast] }  -- Function call
-  deriving Show
+  deriving (Show, Eq)
 
 -- Function to evaluate an AST and return a Maybe result
 evalAST :: Ast -> Maybe Ast
