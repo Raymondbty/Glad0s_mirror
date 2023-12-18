@@ -15,6 +15,9 @@ clean:
 fclean:	clean
 		$(RM) -f $(NAME)
 
+test: all
+	stack test
+
 re:	fclean all
 
 .PHONY:	re fclean clean all
