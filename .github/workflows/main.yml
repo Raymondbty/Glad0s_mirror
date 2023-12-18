@@ -1,23 +1,19 @@
-name: attempt10
-
-on: [push]
+name: attempt11
+on:
+  push:
+    branches:
+      - main 
 
 jobs:
-  to_school_repo:
+  mirror_to_epitech:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
-      - name: Mirror to School Repo
-        uses: pixta-dev/repository-mirroring-action@v1
-        with:
-          target_repo_url: git@github.com:EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git
-          ssh_private_key: ${{ secrets.SSH_KEY }}
-          # Ajoutez ces lignes pour stocker la clé privée dans un fichier temporaire
-          run: |
-            echo "$SSH_KEY" > /github/home/my_ssh_key
-            chmod 600 /github/home/my_ssh_key
-            INPUT_SSH_PRIVATE_KEY: /github/home/my_ssh_key
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Mirror to Epitech Repo
+      uses: pixta-dev/repository-mirroring-action@v1
+      with:
+        target_repo_url: git@github.com:EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git
+        ssh_private_key: ${{ secrets.SSH_KEY }}
