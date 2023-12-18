@@ -51,15 +51,10 @@ jobs:
 
       - name: Clone and Push to School Repo
         run: |
-          # Configure the SSH key
-          echo "${{ secrets.SSH_KEY }}" > /tmp/id_rsa
-          chmod 600 /tmp/id_rsa
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
-
           # Clone and push to the school repo
           git clone --depth=1 git@github.com:Raymondbty/Glad0s_mirror.git
           cd Glad0s_mirror
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
           git remote add school_repo git@github.com:EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git
-          GIT_SSH_COMMAND="ssh -i /tmp/id_rsa" git push -u school_repo main
+          GIT_SSH_COMMAND="ssh -i <(echo '${{ secrets.SSH_KEY }}')" git push -u school_repo main
