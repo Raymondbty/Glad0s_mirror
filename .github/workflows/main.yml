@@ -1,4 +1,4 @@
-name: attempt 13
+name: attempt 14
 
 on:
   push:
@@ -6,15 +6,15 @@ on:
       - main
 
 jobs:
-  build:
+  clone-epitech:
     runs-on: ubuntu-latest
 
     steps:
     - name: Set up Git repository
       uses: actions/checkout@v2
 
-    - name: Do nothing
-      run: echo "This GitHub Action does nothing."
-
-    - name: Print a message
-      run: echo "GitHub Action ran successfully!"
+    - name: Clone Epitech repository
+      run: |
+        git clone git@github.com:EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git epitech-repo
+        cd epitech-repo
+        ls -la 
