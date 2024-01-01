@@ -7,6 +7,8 @@
 
 module Glados (start) where
 
+import System.IO
+
 data SExpr = SInt Int
            | SSymbol String
            | SList [SExpr]
@@ -41,7 +43,7 @@ printTreeList (x:xs) = case printTree x of
                            Just str -> str ++ ", " ++ printTreeList xs
                            Nothing -> printTreeList xs
 
-data Ast = Define Ast Ast
+data Ast = Define String Ast
          | Call String [Ast]
          | IntLiteral Int
          | StringLiteral String
@@ -88,6 +90,16 @@ parseAnd p1 p2 list = case p1 list of
                                                 Nothing -> Nothing
                         Nothing -> Nothing
 
+interpreter :: IO ()
+interpreter = do
+    eof <- isEOF
+    if eof
+        then return ()
+        else do
+            line <- getLine
+            putStrLn line
+            interpreter
+
 start :: IO ()
 start = do
     let expr = SList [SInt 42, SInt 42, SSymbol "qzf qzf", SList [SInt 42, SInt 42, SSymbol "qzf qzf"]]
@@ -111,3 +123,4 @@ start = do
     putStrLn $ show $ parseAnd (parseChar 'a') (parseChar 'b') "abcd"
     putStrLn $ show $ parseAnd (parseChar 'a') (parseChar 'b') "bcda"
     putStrLn $ show $ parseAnd (parseChar 'a') (parseChar 'b') "acd"
+    interpreter
