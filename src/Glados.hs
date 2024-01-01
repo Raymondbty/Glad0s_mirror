@@ -2,12 +2,10 @@
 -- EPITECH PROJECT, 2023
 -- GLaDOS
 -- File description:
--- Main.hs
+-- GLaDOS.hs
 -}
 
-module Main (main) where
-
-import Lib
+module Glados (start) where
 
 data SExpr = SInt Int
            | SSymbol String
@@ -90,8 +88,8 @@ parseAnd p1 p2 list = case p1 list of
                                                 Nothing -> Nothing
                         Nothing -> Nothing
 
-main :: IO ()
-main = do
+start :: IO ()
+start = do
     let expr = SList [SInt 42, SInt 42, SSymbol "qzf qzf", SList [SInt 42, SInt 42, SSymbol "qzf qzf"]]
     let mast = Call "/" [IntLiteral 42, IntLiteral 0]
     case printTree expr of
