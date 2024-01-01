@@ -52,8 +52,8 @@ data Ast = Define String Ast
 sexprToAST :: SExpr -> Maybe Ast
 sexprToAST (SInt i) = Just $ IntLiteral i
 sexprToAST (SSymbol i) = Just $ StringLiteral i
-sexprToAST (SList [SSymbol "define", SSymbol symbol, SInt i]) = Just $ Define (StringLiteral symbol) (IntLiteral i)
-sexprToAST (SList [SSymbol "define", SSymbol symbol, SSymbol s]) = Just $ Define (StringLiteral symbol) (StringLiteral s)
+sexprToAST (SList [SSymbol "define", SSymbol symbol, SInt i]) = Just $ Define symbol (IntLiteral i)
+sexprToAST (SList [SSymbol "define", SSymbol symbol, SSymbol s]) = Just $ Define symbol (StringLiteral s)
 sexprToAST _ = Nothing
 
 evalAST :: Ast -> Maybe Ast
