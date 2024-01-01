@@ -1,23 +1,29 @@
-BINARY_PATH	:=	$(shell stack path --local-install-root)
+##
+## EPITECH PROJECT, 2023
+## GLaDOS
+## File description:
+## Makefile
+##
 
-NAME	= 	glados
+NAME	=	glados
 
-all:
+all:	$(NAME)
+
+$(NAME):
 	stack build
-	cp $(BINARY_PATH)/bin/$(NAME)-exe ./$(NAME)
+	cp $(shell stack path --local-install-root)/bin/$(NAME)-exe $(NAME)
 
 clean:
-		stack clean
-		$(RM) -f *~
-		$(RM) -f *.o
-		$(RM) -f *.hi
+	stack clean
 
 fclean:	clean
-		$(RM) -f $(NAME)
+	$(RM) -r .stack-work
+	$(RM) stack.yaml.lock
+	$(RM) $(NAME)
+
+re:	fclean all
 
 test: all
 	stack test
 
-re:	fclean all
-
-.PHONY:	re fclean clean all
+.PHONY: all $(NAME) clean fclean re test
