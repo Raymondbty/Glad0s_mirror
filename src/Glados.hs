@@ -2,11 +2,13 @@
 -- EPITECH PROJECT, 2023
 -- GLaDOS
 -- File description:
--- GLaDOS.hs
+-- Glados.hs
 -}
 
 module Glados (start) where
 
+import Ast
+import Parser (parse)
 import System.IO
 
 data SExpr = SInt Int
@@ -43,12 +45,6 @@ printTreeList (x:xs) = case printTree x of
                            Just str -> str ++ ", " ++ printTreeList xs
                            Nothing -> printTreeList xs
 
-data Ast = Define String Ast
-         | Call String [Ast]
-         | IntLiteral Int
-         | StringLiteral String
-         deriving Show
-
 sexprToAST :: SExpr -> Maybe Ast
 sexprToAST (SInt i) = Just $ IntLiteral i
 sexprToAST (SSymbol i) = Just $ StringLiteral i
@@ -56,15 +52,20 @@ sexprToAST (SList [SSymbol "define", SSymbol symbol, SInt i]) = Just $ Define sy
 sexprToAST (SList [SSymbol "define", SSymbol symbol, SSymbol s]) = Just $ Define symbol (StringLiteral s)
 sexprToAST _ = Nothing
 
-evalAST :: Ast -> Maybe Ast
-evalAST (Call "+" [IntLiteral x, IntLiteral y]) = Just $ IntLiteral $ x + y
-evalAST (Call "-" [IntLiteral x, IntLiteral y]) = Just $ IntLiteral $ x - y
-evalAST (Call "*" [IntLiteral x, IntLiteral y]) = Just $ IntLiteral $ x * y
-evalAST (Call "/" [IntLiteral _, IntLiteral 0]) = Just $ IntLiteral $ 0
-evalAST (Call "/" [IntLiteral x, IntLiteral y]) = Just $ IntLiteral $ x `div` y
-evalAST (Call "%" [IntLiteral _, IntLiteral 0]) = Just $ IntLiteral $ 0
-evalAST (Call "%" [IntLiteral x, IntLiteral y]) = Just $ IntLiteral $ x `mod` y
-evalAST _ = Nothing
+evalAST :: Ast -> Either String Ast
+evalAST (Call "+" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x + y
+evalAST (Call "-" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x - y
+evalAST (Call "*" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x * y
+evalAST (Call "/" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
+evalAST (Call "/" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `div` y
+evalAST (Call "%" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
+evalAST (Call "%" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `mod` y
+evalAST (Call "div" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
+evalAST (Call "div" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `div` y
+evalAST (Call "mod" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
+evalAST (Call "mod" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `mod` y
+evalAST (Call f _) = Left $ "no matching function \"" ++ f ++ "\""
+evalAST ast = Right ast
 
 type Parser a = String -> Maybe (a , String)
 
@@ -90,6 +91,11 @@ parseAnd p1 p2 list = case p1 list of
                                                 Nothing -> Nothing
                         Nothing -> Nothing
 
+printAST :: Ast -> IO ()
+printAST ast = case evalAST ast of
+                    Left err -> putStrLn err
+                    Right ast1 -> putStrLn $ show ast1
+
 interpreter :: IO ()
 interpreter = do
     eof <- isEOF
@@ -97,30 +103,11 @@ interpreter = do
         then return ()
         else do
             line <- getLine
-            putStrLn line
+            case parse line of
+                Just ast -> printAST ast
+                Nothing -> return ()
             interpreter
 
 start :: IO ()
 start = do
-    let expr = SList [SInt 42, SInt 42, SSymbol "qzf qzf", SList [SInt 42, SInt 42, SSymbol "qzf qzf"]]
-    let mast = Call "/" [IntLiteral 42, IntLiteral 0]
-    case printTree expr of
-        Just str -> putStrLn str
-        Nothing -> putStrLn "Nothing to print"
-    case evalAST mast of
-        Just ast -> putStrLn $ show ast
-        Nothing -> putStrLn "mast is Nothing"
-    putStrLn $ show $ parseChar 'a' "abcd"
-    putStrLn $ show $ parseChar 'z' "abcd"
-    putStrLn $ show $ parseChar 'b' "abcd"
-    putStrLn $ show $ parseChar 'a' "aaaa"
-    putStrLn $ show $ parseAnyChar "bca" "abcd"
-    putStrLn $ show $ parseAnyChar "xyz" "abcd"
-    putStrLn $ show $ parseAnyChar "bca" "cdef"
-    putStrLn $ show $ parseOr (parseChar 'a') (parseChar 'b') "abcd"
-    putStrLn $ show $ parseOr (parseChar 'a') (parseChar 'b') "bcda"
-    putStrLn $ show $ parseOr (parseChar 'a') (parseChar 'b') "xyz"
-    putStrLn $ show $ parseAnd (parseChar 'a') (parseChar 'b') "abcd"
-    putStrLn $ show $ parseAnd (parseChar 'a') (parseChar 'b') "bcda"
-    putStrLn $ show $ parseAnd (parseChar 'a') (parseChar 'b') "acd"
     interpreter

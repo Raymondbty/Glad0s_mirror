@@ -25,7 +25,9 @@ source-repository head
 
 library
   exposed-modules:
+      Ast
       Glados
+      Parser
   other-modules:
       Paths_glados
   autogen-modules:
