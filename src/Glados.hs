@@ -8,7 +8,9 @@
 module Glados (start) where
 
 import Ast
+import Funcs
 import Parser (parse)
+import Print
 import System.IO
 
 data SExpr = SInt Int
@@ -53,19 +55,16 @@ sexprToAST (SList [SSymbol "define", SSymbol symbol, SSymbol s]) = Just $ Define
 sexprToAST _ = Nothing
 
 evalAST :: Ast -> Either String Ast
-evalAST (Call "+" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x + y
-evalAST (Call "-" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x - y
-evalAST (Call "*" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x * y
-evalAST (Call "/" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
-evalAST (Call "/" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `div` y
-evalAST (Call "%" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
-evalAST (Call "%" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `mod` y
-evalAST (Call "div" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
-evalAST (Call "div" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `div` y
-evalAST (Call "mod" [IntLiteral _, IntLiteral 0]) = Right $ IntLiteral $ 0
-evalAST (Call "mod" [IntLiteral x, IntLiteral y]) = Right $ IntLiteral $ x `mod` y
-evalAST (Call f _) = Left $ "no matching function \"" ++ f ++ "\""
-evalAST ast = Right ast
+evalAST ast = case ast of
+                (Call "+" _) -> plus ast
+                (Call "-" _) -> minus ast
+                (Call "*" _) -> mul ast
+                (Call "/" _) -> myDiv ast
+                (Call "div" _) -> myDiv ast
+                (Call "%" _) -> myMod ast
+                (Call "mod" _) -> myMod ast
+                (Call _ _) -> Left $ noMatchingFunction ast
+                _ -> Right ast
 
 type Parser a = String -> Maybe (a , String)
 
@@ -90,16 +89,6 @@ parseAnd p1 p2 list = case p1 list of
                                                 Just (c2, list2) -> Just ((c1, c2), list2)
                                                 Nothing -> Nothing
                         Nothing -> Nothing
-
-prettyPrintList :: [Ast] -> String
-prettyPrintList [] = ""
-prettyPrintList (x:xs) = " " ++ (prettyPrint x) ++ (prettyPrintList xs)
-
-prettyPrint :: Ast -> String
-prettyPrint (IntLiteral i) = show i
-prettyPrint (StringLiteral str) = show str
-prettyPrint (Call symbol list) = "(" ++ symbol ++ (prettyPrintList list) ++ ")"
-prettyPrint ast = show ast
 
 printAST :: Ast -> IO ()
 printAST ast = case evalAST ast of
