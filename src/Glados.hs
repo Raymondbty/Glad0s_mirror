@@ -91,10 +91,20 @@ parseAnd p1 p2 list = case p1 list of
                                                 Nothing -> Nothing
                         Nothing -> Nothing
 
+prettyPrintList :: [Ast] -> String
+prettyPrintList [] = ""
+prettyPrintList (x:xs) = " " ++ (prettyPrint x) ++ (prettyPrintList xs)
+
+prettyPrint :: Ast -> String
+prettyPrint (IntLiteral i) = show i
+prettyPrint (StringLiteral str) = show str
+prettyPrint (Call symbol list) = "(" ++ symbol ++ (prettyPrintList list) ++ ")"
+prettyPrint ast = show ast
+
 printAST :: Ast -> IO ()
 printAST ast = case evalAST ast of
                     Left err -> putStrLn err
-                    Right ast1 -> putStrLn $ show ast1
+                    Right ast1 -> putStrLn $ prettyPrint ast1
 
 interpreter :: IO ()
 interpreter = do
