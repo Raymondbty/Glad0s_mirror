@@ -34,9 +34,11 @@ parseCall str = let (list, rest) = parseList str in
 
 parseString :: String -> (String, String)
 parseString [] = ([], [])
-parseString (x:xs) | x == '"' = ([], xs)
-                   | otherwise = let (str, rest) = (parseString xs) in
-                                 (x : str, rest)
+parseString ['"'] = ([], [])
+parseString ('\\':'"':xs) = let (str, rest) = (parseString xs) in
+                            ('"' : str, rest)
+parseString (x:xs) = let (str, rest) = (parseString xs) in
+                     (x : str, rest)
 
 parseIntSym :: String -> Ast
 parseIntSym ('-':xs) | isStringNumber xs = IntLiteral (((read xs) :: Int) * (-1))
