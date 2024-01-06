@@ -8,21 +8,14 @@
 module Parser (parse) where
 
 import Ast
-import Data.Char
+
+isNumber :: Char -> Bool
+isNumber c = c >= '0' && c <= '9'
 
 isStringNumber :: String -> Bool
 isStringNumber [] = False
 isStringNumber [x] = isNumber x
 isStringNumber (x:xs) = isNumber x && isStringNumber xs
-
-removeLastElem :: String -> String
-removeLastElem [] = []
-removeLastElem [_] = []
-removeLastElem (x:xs) = x : removeLastElem xs
-
-parseArgs :: [String] -> [Ast]
-parseArgs [] = []
-parseArgs (x:xs) = (parse x) : (parseArgs xs)
 
 firstWord :: String -> (String, String)
 firstWord [] = ([], [])
@@ -30,16 +23,14 @@ firstWord (x:xs) | x == ' ' = ([], xs)
                  | otherwise = let (str, rest) = (firstWord xs) in
                                (x : str, rest)
 
-parseCall :: String -> Ast
-parseCall str = case firstWord str of
-                    ([], _) -> StringLiteral ""
-                    (word, rest) -> Call word (parseArgs rest)
+parseList :: String -> (String, String)
+parseList str = ("", "")
 
-parseAst :: String -> [Ast]
-parseAst [] = []
-parseAst (x:xs) | x == '(' && null xs == False && (head $ reverse xs) == ')' = parseCall $ removeLastElem xs
-                | isStringNumber (x : xs) = IntLiteral (read (x : xs) :: Int)
-                | otherwise = StringLiteral (x : xs)
+parseCall :: String -> (Maybe Ast, String)
+parseCall str = let (list, rest) = parseList str in
+                case firstWord list of
+                    ([], _) -> (Nothing, rest)
+                    (word, args) -> (Just $ Call word (parse args), rest)
 
 parseString :: String -> (String, String)
 parseString [] = ([], [])
@@ -55,6 +46,9 @@ parseIntSym str      = Symbol str
 parse :: String -> [Ast]
 parse [] = []
 parse (' ':xs) = parse xs
+parse ('(':xs) = case parseCall xs of
+                    (Just ast, rest) -> ast : (parse rest)
+                    (Nothing, rest) -> (parse rest)
 parse ('"':xs) = case parseString xs of
                     ([], _) -> []
                     (str, rest) -> (StringLiteral str) : (parse rest)
