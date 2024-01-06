@@ -22,17 +22,32 @@ removeLastElem (x:xs) = x : removeLastElem xs
 
 parseArgs :: [String] -> [Ast]
 parseArgs [] = []
-parseArgs (x:xs) = case parse x of
-                        Just ast -> ast : (parseArgs xs)
-                        Nothing -> (parseArgs xs)
+parseArgs (x:xs) = (parse x) : (parseArgs xs)
 
-parseCall :: String -> Maybe Ast
-parseCall str = case (words str) of
-                    [] -> Nothing
-                    (word:rest) -> Just $ Call word (parseArgs rest)
+firstWord :: String -> (String, String)
+firstWord [] = ([], [])
+firstWord (x:xs) | x == ' ' = ([], xs)
+                 | otherwise = let (str, rest) = (firstWord xs) in
+                               (x : str, rest)
 
-parse :: String -> Maybe Ast
-parse [] = Nothing
-parse (x:xs) | x == '(' && null xs == False && (head $ reverse xs) == ')' = parseCall $ removeLastElem xs
-             | isStringNumber (x : xs) = Just $ IntLiteral (read (x : xs) :: Int)
-             | otherwise = Just $ StringLiteral (x : xs)
+parseCall :: String -> Ast
+parseCall str = case firstWord str of
+                    ([], _) -> StringLiteral ""
+                    (word, rest) -> Call word (parseArgs rest)
+
+parseAst :: String -> [Ast]
+parseAst [] = []
+parseAst (x:xs) | x == '(' && null xs == False && (head $ reverse xs) == ')' = parseCall $ removeLastElem xs
+                | isStringNumber (x : xs) = IntLiteral (read (x : xs) :: Int)
+                | otherwise = StringLiteral (x : xs)
+
+parseIntSym :: String -> Ast
+parseIntSym ('-':xs) | isStringNumber xs = IntLiteral (((read xs) :: Int) * (-1))
+parseIntSym str      | isStringNumber str = IntLiteral ((read str) :: Int)
+parseIntSym str      = Symbol str
+
+parse :: String -> [Ast]
+parse [] = []
+parse str = case firstWord str of
+                ([], _) -> []
+                (word, rest) -> [parseIntSym word] ++ (parse rest)

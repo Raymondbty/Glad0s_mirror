@@ -90,10 +90,11 @@ parseAnd p1 p2 list = case p1 list of
                                                 Nothing -> Nothing
                         Nothing -> Nothing
 
-printAST :: Ast -> IO ()
-printAST ast = case evalAST ast of
+printAST :: [Ast] -> IO ()
+printAST [] = return ()
+printAST (x:xs) = case evalAST x of
                     Left err -> putStrLn err
-                    Right ast1 -> putStrLn $ prettyPrint ast1
+                    Right ast -> putStrLn (prettyPrint ast) >> printAST xs
 
 interpreter :: IO ()
 interpreter = do
@@ -102,9 +103,7 @@ interpreter = do
         then return ()
         else do
             line <- getLine
-            case parse line of
-                Just ast -> printAST ast
-                Nothing -> return ()
+            printAST $ parse line
             interpreter
 
 start :: IO ()
