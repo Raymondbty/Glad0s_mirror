@@ -23,11 +23,18 @@ firstWord (x:xs) | x == ' ' = ([], xs)
                  | otherwise = let (str, rest) = (firstWord xs) in
                                (x : str, rest)
 
-parseList :: String -> (String, String)
-parseList str = ("", "")
+parseList :: (Int, String) -> (String, String)
+parseList (_, []) = ([], [])
+parseList (0, rest) = ([], rest)
+parseList (i, (x:xs)) | x == '(' = let (list, rest) = parseList (i + 1, xs) in
+                                   (x : list, rest)
+                      | x == ')' = let (list, rest) = parseList (i - 1, xs) in
+                                   (list, rest)
+                      | otherwise = let (list, rest) = parseList (i, xs) in
+                                    (x : list, rest)
 
 parseCall :: String -> (Maybe Ast, String)
-parseCall str = let (list, rest) = parseList str in
+parseCall str = let (list, rest) = parseList (1, str) in
                 case firstWord list of
                     ([], _) -> (Nothing, rest)
                     (word, args) -> (Just $ Call word (parse args), rest)
