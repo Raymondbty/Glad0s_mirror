@@ -70,6 +70,7 @@ evalASTCall ast = Right ast
 
 evalAST :: Ast -> Either String Ast
 evalAST ast = case ast of
+                (Call "if" _) -> if_cond $ evalASTCall ast
                 (Call "eq?" _) -> equal $ evalASTCall ast
                 (Call "<" _) -> lower $ evalASTCall ast
                 (Call "+" _) -> plus $ evalASTCall ast

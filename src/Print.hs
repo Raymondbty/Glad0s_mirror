@@ -5,7 +5,7 @@
 -- Print.hs
 -}
 
-module Print (prettyPrint, wrongArguments, noMatchingFunction) where
+module Print (prettyPrint, wrongArguments, wrongArgumentsIfCond, noMatchingFunction) where
 
 import Ast
 
@@ -23,6 +23,11 @@ prettyPrint ast = show ast
 wrongArguments :: Ast -> String
 wrongArguments ast = case ast of
                         (Call f _) -> "function '" ++ f ++ "' require two arguments " ++ (prettyPrint ast)
+                        _ -> ""
+
+wrongArgumentsIfCond :: Ast -> String
+wrongArgumentsIfCond ast = case ast of
+                        (Call f _) -> "function '" ++ f ++ "' require three arguments " ++ (prettyPrint ast)
                         _ -> ""
 
 noMatchingFunction :: Ast -> String
