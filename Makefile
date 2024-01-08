@@ -1,29 +1,24 @@
-##
-## EPITECH PROJECT, 2023
-## GLaDOS
-## File description:
-## Makefile
-##
+BINARY_PATH	:=	$(shell stack path --local-install-root)
 
-NAME	=	glados
+NAME	= 	glados
 
-all:	$(NAME)
-
-$(NAME):
-	stack build
-	cp $(shell stack path --local-install-root)/bin/$(NAME)-exe $(NAME)
+all:
+	stack build --install-ghc --coverage
+	cp $(BINARY_PATH)/bin/$(NAME)-exe ./$(NAME)
 
 clean:
-	stack clean
+		stack clean
+		$(RM) -f *~
+		$(RM) -f *.o
+		$(RM) -f *.hi
 
 fclean:	clean
-	$(RM) -r .stack-work
-	$(RM) stack.yaml.lock
-	$(RM) $(NAME)
+		$(RM) -f $(NAME)
+
+test:
+	stack test --coverage
+	open .stack-work/install/x86_64-linux/a95b720bfbea6c75b9282490f954248b9dd53610dc431fdc67dab12c0c5a2261/9.6.3/hpc/index.html
 
 re:	fclean all
 
-test: all
-	stack test
-
-.PHONY: all $(NAME) clean fclean re test
+.PHONY:	re fclean clean test all
