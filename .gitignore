@@ -2,3 +2,5 @@
 *~
 glados
 stack.yaml.lock
+*.tix
+*.cabal
