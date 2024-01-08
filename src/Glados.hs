@@ -12,8 +12,6 @@ import Funcs
 import Eval (evalAST)
 import Parser (parse)
 import Print
-import Compiler (compile)
-import VirtualMachine (execute)
 import System.IO
 
 data SExpr = SInt Int
@@ -94,12 +92,7 @@ interpreter = do
         then return ()
         else do
             line <- getLine
-            let ast = parse line
-                program = concatMap compile ast
-            putStrLn $ "Generated program instructions: " ++ show program
-            case execute program of
-                Left err -> putStrLn err
-                Right result -> putStrLn (prettyPrint result)
+            printAST $ parse line
             interpreter
 
 start :: IO ()
