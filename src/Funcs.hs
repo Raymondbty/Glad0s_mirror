@@ -5,10 +5,23 @@
 -- Funcs.hs
 -}
 
-module Funcs (plus, minus, mul, myDiv, myMod) where
+module Funcs (equal, lower, plus, minus, mul, myDiv, myMod) where
 
 import Ast
 import Print
+
+equal :: Either String Ast -> Either String Ast
+equal (Left err) = Left err
+equal (Right ast) = case ast of
+                (Call _ [IntLiteral x, IntLiteral y]) -> Right $ BoolLiteral $ x == y
+                (Call _ [StringLiteral str1, StringLiteral str2]) -> Right $ BoolLiteral $ str1 == str2
+                _ -> Left $ wrongArguments ast
+
+lower :: Either String Ast -> Either String Ast
+lower (Left err) = Left err
+lower (Right ast) = case ast of
+                (Call _ [IntLiteral x, IntLiteral y]) -> Right $ BoolLiteral $ x < y
+                _ -> Left $ wrongArguments ast
 
 plus :: Either String Ast -> Either String Ast
 plus (Left err) = Left err

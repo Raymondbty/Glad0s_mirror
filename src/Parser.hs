@@ -41,7 +41,7 @@ parseCall str = let (list, rest) = parseList (1, str) in
 
 parseString :: String -> (String, String)
 parseString [] = ([], [])
-parseString ['"'] = ([], [])
+parseString ('"':xs) = ([], xs)
 parseString ('\\':'"':xs) = let (str, rest) = (parseString xs) in
                             ('"' : str, rest)
 parseString (x:xs) = let (str, rest) = (parseString xs) in
@@ -55,12 +55,15 @@ parseIntSym str      = Symbol str
 parse :: String -> [Ast]
 parse [] = []
 parse (' ':xs) = parse xs
+parse ('\n':xs) = parse xs
 parse ('(':xs) = case parseCall xs of
                     (Just ast, rest) -> ast : (parse rest)
                     (Nothing, rest) -> (parse rest)
 parse ('"':xs) = case parseString xs of
                     ([], _) -> []
                     (str, rest) -> (StringLiteral str) : (parse rest)
+parse ('#':'t':xs) = (BoolLiteral True) : (parse xs)
+parse ('#':'f':xs) = (BoolLiteral False) : (parse xs)
 parse str = case firstWord str of
                 ([], _) -> []
                 (word, rest) -> (parseIntSym word) : (parse rest)

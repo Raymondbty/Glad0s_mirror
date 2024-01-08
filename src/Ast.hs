@@ -12,4 +12,5 @@ data Ast = Define String Ast
          | IntLiteral Int
          | StringLiteral String
          | Symbol String
+         | BoolLiteral Bool
          deriving Show
