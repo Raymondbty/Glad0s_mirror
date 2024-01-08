@@ -17,7 +17,6 @@ if_cond (Right ast) = case ast of
                 (Call _ [BoolLiteral False, _, falseBranch]) -> Right falseBranch
                 _ -> Left $ wrongArgumentsIfCond ast
 
-
 equal :: Either String Ast -> Either String Ast
 equal (Left err) = Left err
 equal (Right ast) = case ast of
