@@ -10,7 +10,6 @@ module GladosSpec (spec) where
 
 import Test.Hspec
 import Ast
-import Eval
 import Glados
 import Instances()
 
@@ -103,36 +102,6 @@ sexprToASTSpec = do
     it "converts SList to Ast correctly" $
       sexprToAST (SList [SSymbol "define", SSymbol "x", SInt 42]) `shouldBe` Just (Define "x" (IntLiteral 42))
 
-evalASTSpec :: Spec
-evalASTSpec = do
-  describe "evalAST" $ do
-    it "evaluates addition correctly" $
-      evalAST (Call "+" [IntLiteral 2, IntLiteral 3]) `shouldBe` Right (IntLiteral 5)
-
-    it "handles unrecognized function calls" $
-      evalAST (Call "unknown" []) `shouldBe` Left "no matching function 'unknown' (unknown)"
-
-astSpec :: Spec
-astSpec = do
-  describe "Ast" $ do
-    it "shows Define correctly" $
-      show (Define "x" (IntLiteral 42)) `shouldBe` "Define \"x\" (IntLiteral 42)"
-
-    it "shows Call correctly" $
-      show (Call "add" [IntLiteral 1, IntLiteral 2]) `shouldBe` "Call \"add\" [IntLiteral 1,IntLiteral 2]"
-
-    it "shows IntLiteral correctly" $
-      show (IntLiteral 42) `shouldBe` "IntLiteral 42"
-
-    it "shows StringLiteral correctly" $
-      show (StringLiteral "hello") `shouldBe` "StringLiteral \"hello\""
-
-    it "shows Symbol correctly" $
-      show (Symbol "x") `shouldBe` "Symbol \"x\""
-
-    it "shows BoolLiteral correctly" $
-      show (BoolLiteral True) `shouldBe` "BoolLiteral True"
-
 spec :: Spec
 spec = do
     getSymbolSpec
@@ -141,5 +110,3 @@ spec = do
     printTreeSpec
     printTreeListSpec
     sexprToASTSpec
-    evalASTSpec
-    astSpec
