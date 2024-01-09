@@ -17,7 +17,6 @@ fclean:	clean
 
 test:
 	stack test --coverage
-	open .stack-work/install/x86_64-linux/a95b720bfbea6c75b9282490f954248b9dd53610dc431fdc67dab12c0c5a2261/9.6.3/hpc/index.html
 
 re:	fclean all
 
