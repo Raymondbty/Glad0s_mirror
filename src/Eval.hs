@@ -5,7 +5,7 @@
 -- Ast.hs
 -}
 
-module Eval (evalASTCallArgs, evalASTCall, evalAST) where
+module Eval (evalAST) where
 
 import Ast
 import Funcs
@@ -25,9 +25,17 @@ evalASTCall (Call func args) = case evalASTCallArgs args of
                                 Right ast -> Right (Call func ast)
 evalASTCall ast = Right ast
 
+evalASTIfCond :: Ast -> Either String Ast
+evalASTIfCond ast = case ast of
+                        (Call _ [cond, trueBranch, falseBranch]) -> case evalAST cond of
+                                                                        Right (BoolLiteral True) -> evalAST trueBranch
+                                                                        Right (BoolLiteral False) -> evalAST falseBranch
+                                                                        _ -> Left $ wrongArgumentsIfCond ast
+                        _ -> Left $ wrongArgumentsIfCond ast
+
 evalAST :: Ast -> Either String Ast
 evalAST ast = case ast of
-                (Call "if" _) -> if_cond $ evalASTCall ast
+                (Call "if" _) -> evalASTIfCond ast
                 (Call "eq?" _) -> equal $ evalASTCall ast
                 (Call "<" _) -> lower $ evalASTCall ast
                 (Call "+" _) -> plus $ evalASTCall ast

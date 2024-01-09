@@ -5,17 +5,10 @@
 -- Funcs.hs
 -}
 
-module Funcs (if_cond, equal, lower, plus, minus, mul, myDiv, myMod) where
+module Funcs (equal, lower, plus, minus, mul, myDiv, myMod) where
 
 import Ast
 import Print
-
-if_cond :: Either String Ast -> Either String Ast
-if_cond (Left err) = Left err
-if_cond (Right ast) = case ast of
-                (Call _ [BoolLiteral True, trueBranch, _]) -> Right trueBranch
-                (Call _ [BoolLiteral False, _, falseBranch]) -> Right falseBranch
-                _ -> Left $ wrongArgumentsIfCond ast
 
 equal :: Either String Ast -> Either String Ast
 equal (Left err) = Left err
