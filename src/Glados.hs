@@ -5,7 +5,7 @@
 -- Glados.hs
 -}
 
-module Glados (start) where
+module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, start) where
 
 import Ast
 import Eval (evalAST)

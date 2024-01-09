@@ -5,7 +5,7 @@
 -- Parser.hs
 -}
 
-module Parser (parse) where
+module Parser (isNumber, isStringNumber, firstWord, parseList, parseCall, parseString, parseIntSym, parse) where
 
 import Ast
 
