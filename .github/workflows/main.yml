@@ -30,14 +30,8 @@ jobs:
       with:
         fetch-depth: 0
 
-    # Comment out the Haskell setup steps for now
-    #- name: Set up Haskell
-    #  uses: actions/setup-haskell@v1
-    #  with:
-    #    ghc-version: 8.10.3
-
     - name: Build Project
-      run: stack build
+      run: make
 
-    - name: Run Tests (Fake)
-      run: echo "run test..."
+    - name: Run Tests
+      run: make test
