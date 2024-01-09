@@ -30,8 +30,17 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Create Artifact Directory
+      run: mkdir -p ./artifact
+
     - name: Build Project
       run: make
 
     - name: Run Tests
       run: make test
+
+    - name: Create Release Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: release-artifact
+        path: ./artifact
