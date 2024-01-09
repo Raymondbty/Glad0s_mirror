@@ -29,7 +29,9 @@ parseList (0, rest) = ([], rest)
 parseList (i, (x:xs)) | x == '(' = let (list, rest) = parseList (i + 1, xs) in
                                    (x : list, rest)
                       | x == ')' = let (list, rest) = parseList (i - 1, xs) in
-                                   (list, rest)
+                                   if i == 1
+                                   then (list, rest)
+                                   else (x : list, rest)
                       | otherwise = let (list, rest) = parseList (i, xs) in
                                     (x : list, rest)
 

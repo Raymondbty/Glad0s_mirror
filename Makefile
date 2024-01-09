@@ -1,10 +1,8 @@
-BINARY_PATH	:=	$(shell stack path --local-install-root)
-
 NAME	= 	glados
 
 all:
 	stack build
-	cp $(BINARY_PATH)/bin/$(NAME)-exe ./$(NAME)
+	cp $(shell stack path --local-install-root)/bin/$(NAME)-exe ./$(NAME)
 
 clean:
 		stack clean

@@ -5,7 +5,7 @@
 -- Glados.hs
 -}
 
-module Glados where
+module Glados (start) where
 
 import Ast
 import Eval (evalAST)
