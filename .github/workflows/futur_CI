@@ -1,0 +1,54 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror_to_epitech:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Mirror to Epitech Repo
+      uses: pixta-dev/repository-mirroring-action@v1
+      with:
+        target_repo_url: git@github.com:EpitechPromo2026/B-FUN-500-PAR-5-2-glados-hugo.mouraud.git
+        ssh_private_key: ${{ secrets.SSH_KEY }}
+
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up Haskell
+      uses: actions/setup-haskell@v1
+      with:
+        ghc-version: 8.10.4
+
+    - name: Build Project
+      run: make
+
+    - name: Run Tests
+      run: make test
+
+    - name: Upload coverage results
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.out
+
+    - name: Create release artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: release-artifact
+        path: ./your-artifact-directory
