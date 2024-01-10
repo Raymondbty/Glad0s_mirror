@@ -1,0 +1,21 @@
+<program> ::= <expression>+
+
+<expression> ::= <atom> | <list>
+
+<atom> ::= <symbol> | <number> | <string>
+
+<list> ::= '(' <expression>* ')'
+
+<symbol> ::= <letter> <symbol-char>*
+
+<number> ::= <digit>+
+
+<string> ::= '"' <character>* '"'
+
+<symbol-char> ::= <letter> | <digit> | '-' | '_' | '*'
+
+<letter> ::= 'a' | 'b' | ... | 'z' | 'A' | 'B' | ... | 'Z'
+
+<digit> ::= '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+
+<character> ::= any valid character
