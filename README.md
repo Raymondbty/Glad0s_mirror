@@ -1,4 +1,13 @@
-# Glados
+# Glados - Epitech Promo 2026
+
+--------------------------------------
+
+### Compile Glados
+
+```
+└─$ [make]
+└─$ [make re]
+```
 
 --------------------------------------
 
@@ -16,7 +25,7 @@ or:
 
 --------------------------------------
 
-### Command lines
+### Command Lines
 
 ```
 Welcome to Glados !
@@ -54,6 +63,60 @@ Eq:
 Cond:
 └─$ example -> (if (eq? 5 4) (+ 6 6) (- 7 1))
 ---------------------------------------------
+```
+
+--------------------------------------
+
+### Unit Tests
+
+```
+Start:
+└─$ [make test]
+
+Packages used:
+  - hspec
+  - silently
+```
+
+--------------------------------------
+
+### Project Architecture
+
+```
+├── app
+│   └── Main.hs
+├── CHANGELOG.md
+├── examples
+│   ├── call.scm
+│   ├── error.scm
+│   └── foo.scm
+├── glados
+├── glados.cabal
+├── langage.bnf
+├── LICENSE
+├── Makefile
+├── package.yaml
+├── README.md
+├── Setup.hs
+├── src
+│   ├── Ast.hs
+│   ├── CommandLines.hs
+│   ├── Eval.hs
+│   ├── Funcs.hs
+│   ├── Glados.hs
+│   ├── Parser.hs
+│   └── Print.hs
+├── stack.yaml
+├── stack.yaml.lock
+└── test
+    ├── AstSpec.hs
+    ├── CommandLinesSpec.hs
+    ├── EvalSpec.hs
+    ├── FuncsSpec.hs
+    ├── GladosSpec.hs
+    ├── Instances.hs
+    ├── Main.hs
+    └── ParserSpec.hs
 ```
 
 --------------------------------------
