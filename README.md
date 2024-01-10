@@ -79,6 +79,17 @@ Packages used:
 ```
 
 --------------------------------------
+## CI/CD
+
+This project utilizes continuous integration and continuous deployment (CI/CD) pipelines to automate the testing and deployment processes.
+
+- **Build and Test Workflow:** Upon every push to the `main` branch, a GitHub Actions workflow is triggered. This workflow compiles the Glados project, runs unit tests, and creates an artifact.
+
+- **Mirror to Epitech Repo:** Additionally, the project is mirrored to the Epitech repository using a separate workflow.
+
+- **Artifact:** The CI/CD workflow generates an artifact containing the compiled project and test results. This artifact is uploaded for further inspection or deployment.
+
+--------------------------------------
 
 ### Project Architecture
 
