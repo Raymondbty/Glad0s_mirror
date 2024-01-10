@@ -12,6 +12,21 @@ import Ast
 import Eval
 import Instances()
 
+evalASTIfCondSpec :: Spec
+evalASTIfCondSpec = do
+  describe "evalASTIfCond" $ do
+    it "returns 12 for (if (eq? 5 5) (+ 6 6) (- 7 1))" $
+      evalASTIfCond (Call "if" [Call "eq?" [IntLiteral 5, IntLiteral 5], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) `shouldBe` Right (IntLiteral 12)
+
+    it "returns 6 for (if (eq? 5 4) (+ 6 6) (- 7 1))" $
+      evalASTIfCond (Call "if" [Call "eq?" [IntLiteral 5, IntLiteral 4], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) `shouldBe` Right (IntLiteral 6)
+
+    it "returns 12 for (if (eq? \"test\" \"test\") (+ 6 6) (- 7 1))" $
+      evalASTIfCond (Call "if" [Call "eq?" [StringLiteral "test", StringLiteral "test"], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) `shouldBe` Right (IntLiteral 12)
+
+    it "returns 12 for (if (eq? \"test\" \"test\") (+ 6 6) (- 7 1))" $
+      evalASTIfCond (Call "if" [Call "eq?" [StringLiteral "test", StringLiteral "test"], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) `shouldBe` Right (IntLiteral 12)
+
 evalASTSpec :: Spec
 evalASTSpec = do
   describe "evalAST" $ do
@@ -23,4 +38,5 @@ evalASTSpec = do
 
 spec :: Spec
 spec = do
+    evalASTIfCondSpec
     evalASTSpec

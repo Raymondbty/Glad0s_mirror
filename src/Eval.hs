@@ -5,7 +5,7 @@
 -- Ast.hs
 -}
 
-module Eval (evalAST) where
+module Eval (evalASTIfCond, evalAST) where
 
 import Ast
 import Funcs
