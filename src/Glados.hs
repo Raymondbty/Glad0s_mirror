@@ -5,11 +5,12 @@
 -- Glados.hs
 -}
 
-module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, start) where
+module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, interpreter, start) where
 
 import Ast
 import Eval (evalAST)
 import Parser (parse)
+import CommandLines
 import Print
 import System.IO
 
@@ -91,8 +92,17 @@ interpreter = do
         then return ()
         else do
             line <- getLine
-            printAST $ parse line
-            interpreter
+            case line of
+                "!quit" -> quitCommand
+                "!man" -> do
+                    manCommand
+                    interpreter
+                "!help" -> do
+                    helpCommand
+                    interpreter
+                _ -> do
+                    printAST $ parse line
+                    interpreter
 
 start :: IO ()
 start = do

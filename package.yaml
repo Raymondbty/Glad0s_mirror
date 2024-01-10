@@ -61,3 +61,4 @@ tests:
     - glados
     - QuickCheck
     - hspec
+    - silently

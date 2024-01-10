@@ -5,7 +5,6 @@
 -- GladosSpec.hs
 -}
 
-
 module GladosSpec (spec) where
 
 import Test.Hspec
