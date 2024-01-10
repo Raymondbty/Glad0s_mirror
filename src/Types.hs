@@ -2,10 +2,10 @@
 -- EPITECH PROJECT, 2023
 -- GLaDOS
 -- File description:
--- Ast.hs
+-- Types.hs
 -}
 
-module Ast (Ast(..)) where
+module Types (Ast(..), Env(..)) where
 
 data Ast = Define String Ast
          | Call String [Ast]
@@ -13,4 +13,7 @@ data Ast = Define String Ast
          | StringLiteral String
          | Symbol String
          | BoolLiteral Bool
+         deriving Show
+
+data Env = String Ast
          deriving Show

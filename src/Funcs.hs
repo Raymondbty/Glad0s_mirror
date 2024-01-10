@@ -7,8 +7,8 @@
 
 module Funcs (equal, lower, plus, minus, mul, myDiv, myMod) where
 
-import Ast
 import Print
+import Types
 
 equal :: Either String Ast -> Either String Ast
 equal (Left err) = Left err

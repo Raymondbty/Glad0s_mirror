@@ -7,7 +7,7 @@
 
 module Print (prettyPrint, wrongArguments, wrongArgumentsIfCond, noMatchingFunction) where
 
-import Ast
+import Types
 
 prettyPrintList :: [Ast] -> String
 prettyPrintList [] = ""

@@ -25,12 +25,13 @@ source-repository head
 
 library
   exposed-modules:
-      Ast
+      CommandLines
       Eval
       Funcs
       Glados
       Parser
       Print
+      Types
   other-modules:
       Paths_glados
   autogen-modules:

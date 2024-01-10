@@ -7,7 +7,7 @@
 
 module Parser (isNumber, isStringNumber, firstWord, parseList, parseCall, parseString, parseIntSym, parse) where
 
-import Ast
+import Types
 
 isNumber :: Char -> Bool
 isNumber c = c >= '0' && c <= '9'

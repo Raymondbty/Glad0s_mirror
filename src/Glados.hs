@@ -7,12 +7,12 @@
 
 module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, interpreter, start) where
 
-import Ast
 import Eval (evalAST)
 import Parser (parse)
 import CommandLines
 import Print
 import System.IO
+import Types
 
 data SExpr = SInt Int
            | SSymbol String

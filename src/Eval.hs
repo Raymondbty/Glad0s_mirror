@@ -7,9 +7,9 @@
 
 module Eval (evalASTIfCond, evalAST) where
 
-import Ast
 import Funcs
 import Print
+import Types
 
 evalASTCallArgs :: [Ast] -> Either String [Ast]
 evalASTCallArgs [] = Right []
