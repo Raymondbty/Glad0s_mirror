@@ -85,7 +85,17 @@ printAST (x:xs) env = case evalAST x env of
                     Left err -> putStrLn err
                     Right ast -> putStrLn (prettyPrint ast) >> printAST xs env
 
+foundDefine :: [Ast] -> Maybe Env
+foundDefine [(Define str ast)] = Just (Var str ast)
+foundDefine _ = Nothing
 
+parseEnv :: String -> [Env] -> IO ()
+parseEnv line env = do
+    case foundDefine asts of
+        Just var -> interpreter $ var : env
+        Nothing -> (printAST asts env) >> interpreter env
+    where
+        asts = (parse line)
 
 interpreter :: [Env] -> IO ()
 interpreter env = do
@@ -103,8 +113,7 @@ interpreter env = do
                     helpCommand
                     interpreter env
                 _ -> do
-                    printAST (parse line) env
-                    interpreter env
+                    parseEnv line env
 
 start :: IO ()
 start = do
