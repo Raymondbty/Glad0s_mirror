@@ -35,10 +35,17 @@ parseList (i, (x:xs)) | x == '(' = let (list, rest) = parseList (i + 1, xs) in
                       | otherwise = let (list, rest) = parseList (i, xs) in
                                     (x : list, rest)
 
+parseDefine :: String -> Maybe Ast
+parseDefine args = case parse args of
+                    [(StringLiteral var), ast] -> Just $ Define var ast
+                    [(Symbol var), ast] -> Just $ Define var ast
+                    _ -> Nothing
+
 parseCall :: String -> (Maybe Ast, String)
 parseCall str = let (list, rest) = parseList (1, str) in
                 case firstWord list of
                     ([], _) -> (Nothing, rest)
+                    ("define", args) -> (parseDefine args, rest)
                     (word, args) -> (Just $ Call word (parse args), rest)
 
 parseString :: String -> (String, String)
