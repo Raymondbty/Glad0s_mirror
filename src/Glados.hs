@@ -79,14 +79,16 @@ parseAnd p1 p2 list = case p1 list of
                                                 Nothing -> Nothing
                         Nothing -> Nothing
 
-printAST :: [Ast] -> IO ()
-printAST [] = return ()
-printAST (x:xs) = case evalAST x of
+printAST :: [Ast] -> [Env] -> IO ()
+printAST [] _ = return ()
+printAST (x:xs) env = case evalAST x env of
                     Left err -> putStrLn err
-                    Right ast -> putStrLn (prettyPrint ast) >> printAST xs
+                    Right ast -> putStrLn (prettyPrint ast) >> printAST xs env
 
-interpreter :: IO ()
-interpreter = do
+
+
+interpreter :: [Env] -> IO ()
+interpreter env = do
     eof <- isEOF
     if eof
         then return ()
@@ -96,14 +98,14 @@ interpreter = do
                 "!quit" -> quitCommand
                 "!man" -> do
                     manCommand
-                    interpreter
+                    interpreter env
                 "!help" -> do
                     helpCommand
-                    interpreter
+                    interpreter env
                 _ -> do
-                    printAST $ parse line
-                    interpreter
+                    printAST (parse line) env
+                    interpreter env
 
 start :: IO ()
 start = do
-    interpreter
+    interpreter []

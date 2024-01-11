@@ -15,5 +15,5 @@ data Ast = Define String Ast
          | BoolLiteral Bool
          deriving Show
 
-data Env = String Ast
+data Env = Var String Ast
          deriving Show
