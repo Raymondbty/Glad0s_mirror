@@ -61,4 +61,7 @@ tests:
     - glados
     - QuickCheck
     - hspec
+    - process
     - silently
+    - directory
+    - filepath
