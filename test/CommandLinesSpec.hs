@@ -30,6 +30,9 @@ manCommandSpec = do
       output `shouldContain` "example -> (eq? \"test\" \"test\")"
       output `shouldContain` "Cond:"
       output `shouldContain` "example -> (if (eq? 5 4) (+ 6 6) (- 7 1))"
+      output `shouldContain` "Def:"
+      output `shouldContain` "example -> (define test 5)"
+      output `shouldContain` "example -> (define \"test\" (+ 5 6))"
 
 helpCommandSpec :: Spec
 helpCommandSpec = do

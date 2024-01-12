@@ -33,6 +33,10 @@ manCommand = do
     putStrLn "Cond:"
     putStrLn "  example -> (if (eq? 5 4) (+ 6 6) (- 7 1))"
     putStrLn "---------------------------------------------"
+    putStrLn "Def:"
+    putStrLn "  example -> (define test 5)"
+    putStrLn "  example -> (define \"test\" (+ 5 6))"
+    putStrLn "---------------------------------------------"
 
 helpCommand :: IO ()
 helpCommand = do

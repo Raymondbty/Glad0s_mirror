@@ -63,6 +63,10 @@ Eq:
 Cond:
 └─$ example -> (if (eq? 5 4) (+ 6 6) (- 7 1))
 ---------------------------------------------
+Def:
+└─$ example -> (define test 5)
+└─$ example -> (define \"test\" (+ 5 6))
+---------------------------------------------
 ```
 
 --------------------------------------
@@ -79,6 +83,7 @@ Packages used:
 ```
 
 --------------------------------------
+
 ## CI/CD
 
 This project utilizes continuous integration and continuous deployment (CI/CD) pipelines to automate the testing and deployment processes.
