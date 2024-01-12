@@ -82,7 +82,7 @@ parseAnd p1 p2 list = case p1 list of
 printAST :: [Ast] -> [Env] -> IO ()
 printAST [] _ = return ()
 printAST (x:xs) env = case evalAST x env of
-                    Left err -> putStrLn err
+                    Left err -> putStrLn ("Exception: " ++ err ++ " " ++ (prettyPrint x))
                     Right ast -> putStrLn (prettyPrint ast) >> printAST xs env
 
 foundDefine :: [Ast] -> Maybe Env

@@ -8,7 +8,6 @@
 module Eval (evalASTIfCond, evalAST) where
 
 import Funcs
-import Print
 import Types
 
 evalASTCallArgs :: [Ast] -> [Env] -> Either String [Ast]
@@ -26,12 +25,11 @@ evalASTCall (Call func args) env = case evalASTCallArgs args env of
 evalASTCall ast _ = Right ast
 
 evalASTIfCond :: Ast -> [Env] -> Either String Ast
-evalASTIfCond ast env = case ast of
-                            (Call _ [cond, trueBranch, falseBranch]) -> case evalAST cond env of
-                                                                        Right (BoolLiteral True) -> evalAST trueBranch env
-                                                                        Right (BoolLiteral False) -> evalAST falseBranch env
-                                                                        _ -> Left $ wrongArgumentsIfCond ast
-                            _ -> Left $ wrongArgumentsIfCond ast
+evalASTIfCond (Call _ [cond, trueBranch, falseBranch]) env = case evalAST cond env of
+                                                                Right (BoolLiteral True) -> evalAST trueBranch env
+                                                                Right (BoolLiteral False) -> evalAST falseBranch env
+                                                                _ -> Left "require three arguments"
+evalASTIfCond _ _ = Left "require three arguments"
 
 getASTInEnv :: String -> [Env] -> Maybe Ast
 getASTInEnv _ [] = Nothing
@@ -70,9 +68,7 @@ evalAST ast env = case ast of
                 (Call "*" _) -> mul $ evalASTCall ast env
                 (Call "/" _) -> myDiv $ evalASTCall ast env
                 (Call "%" _) -> myMod $ evalASTCall ast env
-                (Call func args) -> case checkFunc func args env of
-                                        Left err -> Left $ err ++ (noMatchingFunction ast)
-                                        a -> a
+                (Call func args) -> checkFunc func args env
                 (Symbol str) -> lookSymbolInEnv str env
                 _ -> Right ast
 
