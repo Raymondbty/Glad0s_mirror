@@ -32,5 +32,5 @@ wrongArgumentsIfCond ast = case ast of
 
 noMatchingFunction :: Ast -> String
 noMatchingFunction ast = case ast of
-                        (Call f _) -> "no matching function '" ++ f ++ "' " ++ (prettyPrint ast)
+                        (Call f _) -> " '" ++ f ++ "' " ++ (prettyPrint ast)
                         _ -> ""

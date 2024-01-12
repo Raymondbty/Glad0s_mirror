@@ -117,4 +117,6 @@ interpreter env = do
 
 start :: IO ()
 start = do
-    interpreter []
+    interpreter [(Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])))
+                ,(Var "div" (Lambda ["x", "y"] (Call "/" [(Symbol "x"), (Symbol "y")])))
+                ,(Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")])))]

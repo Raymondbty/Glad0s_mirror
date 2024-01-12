@@ -58,21 +58,21 @@ checkFunc func args env = case lookSymbolInEnv func env of
                             Right (Lambda vars ast) -> case appendVars vars args of
                                                         Left err -> Left err
                                                         Right parms -> evalAST ast (parms ++ env)
-                            _ -> Left "unknw"
+                            _ -> Left "no matching function"
 
 evalAST :: Ast -> [Env] -> Either String Ast
 evalAST ast env = case ast of
                 (Call "if" _) -> evalASTIfCond ast env
-                (Call "eq?" _) -> equal $ evalASTCall ast env
+                (Call "?" _) -> equal $ evalASTCall ast env
                 (Call "<" _) -> lower $ evalASTCall ast env
                 (Call "+" _) -> plus $ evalASTCall ast env
                 (Call "-" _) -> minus $ evalASTCall ast env
                 (Call "*" _) -> mul $ evalASTCall ast env
                 (Call "/" _) -> myDiv $ evalASTCall ast env
-                (Call "div" _) -> myDiv $ evalASTCall ast env
                 (Call "%" _) -> myMod $ evalASTCall ast env
-                (Call "mod" _) -> myMod $ evalASTCall ast env
-                (Call func args) -> checkFunc func args env
+                (Call func args) -> case checkFunc func args env of
+                                        Left err -> Left $ err ++ (noMatchingFunction ast)
+                                        a -> a
                 (Symbol str) -> lookSymbolInEnv str env
                 _ -> Right ast
 
