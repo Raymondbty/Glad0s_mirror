@@ -8,7 +8,7 @@
 module ParserSpec (spec) where
 
 import Test.Hspec
-import Ast
+import Types
 import Parser
 import Glados
 import Instances()

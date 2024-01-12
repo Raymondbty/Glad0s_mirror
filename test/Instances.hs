@@ -7,7 +7,7 @@
 
 module Instances (SExpr, Ast) where
 
-import Ast
+import Types
 import Glados
 
 instance Eq SExpr where

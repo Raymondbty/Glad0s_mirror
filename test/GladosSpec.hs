@@ -8,8 +8,9 @@
 module GladosSpec (spec) where
 
 import Test.Hspec
-import Ast
+import System.Process
 import Glados
+import Types
 import Instances()
 
 getSymbolSpec :: Spec
