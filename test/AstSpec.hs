@@ -8,7 +8,7 @@
 module AstSpec (spec) where
 
 import Test.Hspec
-import Ast
+import Types
 import Instances()
 
 astSpec :: Spec

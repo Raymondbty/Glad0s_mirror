@@ -9,7 +9,7 @@
 module FuncsSpec (spec) where
 
 import Test.Hspec
-import Ast
+import Types
 import Funcs
 import Instances()
 

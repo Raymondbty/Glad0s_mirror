@@ -8,7 +8,7 @@
 module GladosSpec (spec) where
 
 import Test.Hspec
-import Ast
+import Types
 import Glados
 import Instances()
 
