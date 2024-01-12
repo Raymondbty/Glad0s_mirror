@@ -8,9 +8,13 @@
 module GladosSpec (spec) where
 
 import Test.Hspec
-import Types
+import System.IO
+import System.Process
 import Glados
+import Types
+import System.Directory
 import Instances()
+import System.FilePath ((</>))
 
 getSymbolSpec :: Spec
 getSymbolSpec = do
@@ -101,6 +105,16 @@ sexprToASTSpec = do
     it "converts SList to Ast correctly" $
       sexprToAST (SList [SSymbol "define", SSymbol "x", SInt 42]) `shouldBe` Just (Define "x" (IntLiteral 42))
 
+integrationTestSpec :: Spec
+integrationTestSpec = do
+  describe "Integration Test" $ do
+    it "correctly evaluates the example from examples/call.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      setCurrentDirectory "/home/hmouraud/delivery/B-FUN-500-PAR-5-2-glados-hugo.mouraud/test"
+      inputPath <- makeAbsolute "examples/call.scm"
+      output <- readProcess exePath ["<", inputPath] ""
+      output `shouldBe` "5\n"
+
 spec :: Spec
 spec = do
     getSymbolSpec
@@ -109,3 +123,4 @@ spec = do
     printTreeSpec
     printTreeListSpec
     sexprToASTSpec
+    integrationTestSpec
