@@ -19,7 +19,7 @@ isStringNumber (x:xs) = isNumber x && isStringNumber xs
 
 firstWord :: String -> (String, String)
 firstWord [] = ([], [])
-firstWord (x:xs) | x == ' ' = ([], xs)
+firstWord (x:xs) | x == ' ' || x == '\t' || x == '\r' || x == '\n' = ([], xs)
                  | otherwise = let (str, rest) = (firstWord xs) in
                                (x : str, rest)
 
@@ -64,6 +64,8 @@ parseIntSym str      = Symbol str
 parse :: String -> [Ast]
 parse [] = []
 parse (' ':xs) = parse xs
+parse ('\t':xs) = parse xs
+parse ('\r':xs) = parse xs
 parse ('\n':xs) = parse xs
 parse ('(':xs) = case parseCall xs of
                     (Just ast, rest) -> ast : (parse rest)

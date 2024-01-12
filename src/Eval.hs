@@ -44,6 +44,22 @@ lookSymbolInEnv str env = case getASTInEnv str env of
                                 Just ast -> evalAST ast env
                                 Nothing -> Left $ "variable " ++ str ++ " not found"
 
+appendVars :: [String] -> [Ast] -> Either String [Env]
+appendVars [] [] = Right []
+appendVars [] _ = Left "incorrect number of arguments"
+appendVars _ [] = Left "incorrect number of arguments"
+appendVars (v:vx) (a:ax) = case appendVars vx ax of
+                            Left err -> Left err
+                            Right res -> Right $ (Var v a) : res
+
+checkFunc :: String -> [Ast] -> [Env] -> Either String Ast
+checkFunc func args env = case lookSymbolInEnv func env of
+                            Left err -> Left err
+                            Right (Lambda vars ast) -> case appendVars vars args of
+                                                        Left err -> Left err
+                                                        Right parms -> evalAST ast (parms ++ env)
+                            _ -> Left "unknw"
+
 evalAST :: Ast -> [Env] -> Either String Ast
 evalAST ast env = case ast of
                 (Call "if" _) -> evalASTIfCond ast env
@@ -56,6 +72,6 @@ evalAST ast env = case ast of
                 (Call "div" _) -> myDiv $ evalASTCall ast env
                 (Call "%" _) -> myMod $ evalASTCall ast env
                 (Call "mod" _) -> myMod $ evalASTCall ast env
-                (Call _ _) -> Left $ noMatchingFunction ast
+                (Call func args) -> checkFunc func args env
                 (Symbol str) -> lookSymbolInEnv str env
                 _ -> Right ast

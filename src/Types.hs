@@ -13,6 +13,7 @@ data Ast = Define String Ast
          | StringLiteral String
          | Symbol String
          | BoolLiteral Bool
+         | Lambda [String] Ast
          deriving Show
 
 data Env = Var String Ast
