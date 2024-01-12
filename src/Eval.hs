@@ -59,3 +59,18 @@ evalAST ast env = case ast of
                 (Call _ _) -> Left $ noMatchingFunction ast
                 (Symbol str) -> lookSymbolInEnv str env
                 _ -> Right ast
+
+-- set place for lambda
+
+-- anonymous
+
+-- closures
+
+-- 1st class
+
+-- recursiv
+
+-- transfm
+
+-- mapping
+
