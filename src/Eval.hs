@@ -46,6 +46,7 @@ appendVars :: [String] -> [Ast] -> Either String [Env]
 appendVars [] [] = Right []
 appendVars [] _ = Left "incorrect number of arguments"
 appendVars _ [] = Left "incorrect number of arguments"
+appendVars (_:vx) ((Symbol _):ax) = appendVars vx ax
 appendVars (v:vx) (a:ax) = case appendVars vx ax of
                             Left err -> Left err
                             Right res -> Right $ (Var v a) : res
