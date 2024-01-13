@@ -19,6 +19,7 @@ prettyPrint (StringLiteral str) = show str
 prettyPrint (Call symbol list) = "(" ++ symbol ++ (prettyPrintList list) ++ ")"
 prettyPrint (BoolLiteral b) = show b
 prettyPrint (Symbol str) = show str
+prettyPrint (Lambda _ _) = "#<procedure>"
 prettyPrint ast = show ast
 
 wrongArguments :: Ast -> String

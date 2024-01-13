@@ -41,11 +41,32 @@ parseDefine args = case parse args of
                     [(Symbol var), ast] -> Just $ Define var ast
                     _ -> Nothing
 
+symbolToString :: [Ast] -> Maybe [String]
+symbolToString [] = Just []
+symbolToString (Symbol str:xs) = case symbolToString xs of
+                                    Nothing -> Nothing
+                                    Just strs -> Just $ str : strs
+symbolToString _ = Nothing
+
+parseLambda :: String -> Maybe Ast
+parseLambda (' ':xs) = parseLambda xs
+parseLambda ('\t':xs) = parseLambda xs
+parseLambda ('\r':xs) = parseLambda xs
+parseLambda ('\n':xs) = parseLambda xs
+parseLambda ('(':xs) = let (list, rest) = parseList (1, xs) in
+                       case symbolToString $ parse list of
+                        Nothing -> Nothing
+                        Just strs -> case parse rest of
+                                        [] -> Nothing
+                                        (x:_) -> Just $ (Lambda strs x)
+parseLambda _ = Nothing
+
 parseCall :: String -> (Maybe Ast, String)
 parseCall str = let (list, rest) = parseList (1, str) in
                 case firstWord list of
                     ([], _) -> (Nothing, rest)
                     ("define", args) -> (parseDefine args, rest)
+                    ("lambda", args) -> (parseLambda args, rest)
                     (word, args) -> (Just $ Call word (parse args), rest)
 
 parseString :: String -> (String, String)
