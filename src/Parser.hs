@@ -8,6 +8,7 @@
 module Parser (isNumber, isStringNumber, firstWord, parseList, parseCall, parseString, parseIntSym, parse) where
 
 import Types
+import Glados
 
 isNumber :: Char -> Bool
 isNumber c = c >= '0' && c <= '9'
@@ -61,6 +62,12 @@ parseIntSym ('-':xs) | isStringNumber xs = IntLiteral (((read xs) :: Int) * (-1)
 parseIntSym str      | isStringNumber str = IntLiteral ((read str) :: Int)
 parseIntSym str      = Symbol str
 
+parseLambda :: String -> Maybe Ast
+parseLambda args = case parse args of
+                    [(SSymbol "lambda"), (SList params), body] ->
+                        Just $ Lambda (map (\(SSymbol param) -> param) params) (sexprToAST body)
+                    _ -> Nothing
+
 parse :: String -> [Ast]
 parse [] = []
 parse (' ':xs) = parse xs
@@ -77,4 +84,7 @@ parse ('#':'t':xs) = (BoolLiteral True) : (parse xs)
 parse ('#':'f':xs) = (BoolLiteral False) : (parse xs)
 parse str = case firstWord str of
                 ([], _) -> []
+                ("lambda", rest) -> case parseLambda rest of
+                                      Just ast -> ast : parse (drop (length rest) str)
+                                      Nothing -> []
                 (word, rest) -> (parseIntSym word) : (parse rest)

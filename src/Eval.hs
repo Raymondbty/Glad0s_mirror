@@ -70,6 +70,7 @@ evalAST ast env = case ast of
                 (Call "%" _) -> myMod $ evalASTCall ast env
                 (Call func args) -> checkFunc func args env
                 (Symbol str) -> lookSymbolInEnv str env
+                (Lambda vars body) -> Right $ Lambda vars body
                 _ -> Right ast
 
 -- set place for lambda
