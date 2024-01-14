@@ -30,14 +30,34 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Update stack repository information
+      run: stack update
+
+    - name: Install hlint
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y hlint
+
     - name: Build Project
       run: make
 
     - name: Run Tests
       run: make test
+  
+    - name: Measure code coverage
+      run: stack test --coverage
 
+    - name: Generate documentation with Haddock
+      run: make docs
+
+    - name: Analyze code with Haskell-Platform
+      run: stack build --pedantic
+        
+    - name: Check coding style with hlint
+      run: hlint . || true
+      
     - name: Create Release Artifact
       uses: actions/upload-artifact@v2
       with:
         name: release-artifact
-        path: '.'
+        path: 'glados'

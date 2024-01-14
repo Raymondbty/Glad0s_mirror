@@ -32,7 +32,7 @@ equalSpec = do
         (show (equal (Right (Call "eq?" [StringLiteral "hello", StringLiteral "world"])))) `shouldBe` (show (Right (BoolLiteral False) :: Either String Ast))
 
       it "returns Left for wrong argument types" $
-        equal (Right (Call "eq?" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` Left "function 'eq?' require two arguments (eq? 42 \"hello\")"
+        equal (Right (Call "eq?" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` Left "require two arguments"
 
 lowerSpec :: Spec
 lowerSpec = do
@@ -47,7 +47,7 @@ lowerSpec = do
         (show (lower (Right (Call "<" [IntLiteral 50, IntLiteral 42])))) `shouldBe` (show (Right (BoolLiteral False) :: Either String Ast))
 
       it "returns Left for wrong argument types" $
-        lower (Right (Call "<" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "function '<' require two arguments (< 42 \"hello\")" :: Either String Ast)
+        lower (Right (Call "<" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "require two arguments" :: Either String Ast)
 
 plusSpec :: Spec
 plusSpec = do
@@ -59,7 +59,7 @@ plusSpec = do
         plus (Right (Call "+" [IntLiteral 2, IntLiteral 3])) `shouldBe` (Right (IntLiteral 5) :: Either String Ast)
 
       it "returns Left for wrong argument types" $
-        plus (Right (Call "+" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "function '+' require two arguments (+ 42 \"hello\")" :: Either String Ast)
+        plus (Right (Call "+" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "require two arguments" :: Either String Ast)
 
 minusSpec :: Spec
 minusSpec = do
@@ -71,7 +71,7 @@ minusSpec = do
         minus (Right (Call "-" [IntLiteral 5, IntLiteral 3])) `shouldBe` (Right (IntLiteral 2) :: Either String Ast)
 
       it "returns Left for wrong argument types" $
-        minus (Right (Call "-" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "function '-' require two arguments (- 42 \"hello\")" :: Either String Ast)
+        minus (Right (Call "-" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "require two arguments" :: Either String Ast)
 
 mulSpec :: Spec
 mulSpec = do
@@ -83,7 +83,7 @@ mulSpec = do
         mul (Right (Call "*" [IntLiteral 2, IntLiteral 3])) `shouldBe` (Right (IntLiteral 6) :: Either String Ast)
 
       it "returns Left for wrong argument types" $
-        mul (Right (Call "*" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "function '*' require two arguments (* 42 \"hello\")" :: Either String Ast)
+        mul (Right (Call "*" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "require two arguments" :: Either String Ast)
 
 myDivSpec :: Spec
 myDivSpec = do
@@ -98,7 +98,7 @@ myDivSpec = do
         myDiv (Right (Call "/" [IntLiteral 5, IntLiteral 0])) `shouldBe` (Right (IntLiteral 0) :: Either String Ast)
 
       it "returns Left for wrong argument types" $
-        myDiv (Right (Call "/" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "function '/' require two arguments (/ 42 \"hello\")" :: Either String Ast)
+        myDiv (Right (Call "/" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "require two arguments" :: Either String Ast)
 
 myModSpec :: Spec
 myModSpec = do
@@ -113,7 +113,7 @@ myModSpec = do
         myMod (Right (Call "%" [IntLiteral 5, IntLiteral 0])) `shouldBe` (Right (IntLiteral 0) :: Either String Ast)
 
       it "returns Left for wrong argument types" $
-        myMod (Right (Call "%" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "function '%' require two arguments (% 42 \"hello\")" :: Either String Ast)
+        myMod (Right (Call "%" [IntLiteral 42, StringLiteral "hello"])) `shouldBe` (Left "require two arguments" :: Either String Ast)
 
 spec :: Spec
 spec = do

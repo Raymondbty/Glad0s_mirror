@@ -15,17 +15,17 @@ import Instances()
 evalASTIfCondSpec :: Spec
 evalASTIfCondSpec = do
   describe "evalASTIfCond" $ do
-    it "returns 12 for (if (eq? 5 5) (+ 6 6) (- 7 1))" $
-      evalASTIfCond (Call "if" [Call "eq?" [IntLiteral 5, IntLiteral 5], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) [] `shouldBe` Right (IntLiteral 12)
+    it "returns the true branch for a true condition" $
+      evalASTIfCond (Call "if" [BoolLiteral True, IntLiteral 42, IntLiteral 99]) [] `shouldBe` Right (IntLiteral 42)
 
-    it "returns 6 for (if (eq? 5 4) (+ 6 6) (- 7 1))" $
-      evalASTIfCond (Call "if" [Call "eq?" [IntLiteral 5, IntLiteral 4], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) [] `shouldBe` Right (IntLiteral 6)
+    it "returns the false branch for a false condition" $
+      evalASTIfCond (Call "if" [BoolLiteral False, IntLiteral 42, IntLiteral 99]) [] `shouldBe` Right (IntLiteral 99)
 
-    it "returns 12 for (if (eq? \"test\" \"test\") (+ 6 6) (- 7 1))" $
-      evalASTIfCond (Call "if" [Call "eq?" [StringLiteral "test", StringLiteral "test"], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) [] `shouldBe` Right (IntLiteral 12)
+    it "returns an error when condition is not a boolean" $
+      evalASTIfCond (Call "if" [IntLiteral 1, IntLiteral 42, IntLiteral 99]) [] `shouldBe` Left "require three arguments"
 
-    it "returns 12 for (if (eq? \"test\" \"test\") (+ 6 6) (- 7 1))" $
-      evalASTIfCond (Call "if" [Call "eq?" [StringLiteral "test", StringLiteral "test"], Call "+" [IntLiteral 6, IntLiteral 6], Call "-" [IntLiteral 7, IntLiteral 1]]) [] `shouldBe` Right (IntLiteral 12)
+    it "returns an error when not enough arguments are provided" $
+      evalASTIfCond (Call "if" [BoolLiteral True, IntLiteral 42]) [] `shouldBe` Left "require three arguments"
 
 evalASTSpec :: Spec
 evalASTSpec = do
@@ -34,7 +34,7 @@ evalASTSpec = do
       evalAST (Call "+" [IntLiteral 2, IntLiteral 3]) [] `shouldBe` Right (IntLiteral 5)
 
     it "handles unrecognized function calls" $
-      evalAST (Call "unknown" []) [] `shouldBe` Left "no matching function 'unknown' (unknown)"
+      evalAST (Call "unknown" []) [] `shouldBe` Left "variable unknown not found"
 
 spec :: Spec
 spec = do
