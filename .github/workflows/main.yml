@@ -30,6 +30,9 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Install stack-outdated
+      run: stack install outdated
+
     - name: Check outdated dependencies
       run: stack outdated
 
