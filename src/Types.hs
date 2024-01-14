@@ -35,6 +35,8 @@ data Operator = ADD
 data Instruction = Push Value
                  | CallOp Operator
                  | Ret
+                 | JUMPIFFALSE Int
+                 | JUMP Int
                  deriving Show
 
 type Stack = [Value]

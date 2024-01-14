@@ -44,6 +44,16 @@ execOpLESS insts ((IntVM i1):(IntVM i2):stack) = exec insts ((BoolVM $ i1 < i2) 
 execOpLESS insts ((BoolVM b1):(BoolVM b2):stack) = exec insts ((BoolVM $ b1 < b2) : stack)
 execOpLESS _ _ = Left "LESS need two arguments"
 
+remInst :: Int -> Insts -> Insts
+remInst _ [] = []
+remInst i (x:xs) | i > 0 = remInst (i - 1) xs
+                 | otherwise = x : xs
+
+execJumpIfFalse :: Int -> Insts -> Stack -> Either String Value
+execJumpIfFalse i insts ((BoolVM False):stack) = exec (remInst i insts) stack
+execJumpIfFalse i insts ((IntVM 0):stack) = exec (remInst i insts) stack
+execJumpIfFalse _ insts stack = exec insts stack
+
 exec :: Insts -> Stack -> Either String Value
 exec ((CallOp ADD):insts) stack = execOpADD insts stack
 exec ((CallOp SUB):insts) stack = execOpSUB insts stack
@@ -54,6 +64,8 @@ exec ((CallOp EQUAL):insts) stack = execOpEQUAL insts stack
 exec ((CallOp LESS):insts) stack = execOpLESS insts stack
 exec ((Push value):insts) stack = exec insts (value : stack)
 exec (Ret:_) (value:_) = Right value
+exec ((JUMPIFFALSE i):insts) stack = execJumpIfFalse i insts stack
+exec ((JUMP i):insts) stack = exec (remInst i insts) stack
 exec _ _ = Left "no value to return"
 
 parseVMCall :: String -> Maybe Instruction
@@ -73,6 +85,10 @@ parseVMPush ('-':xs) | isStringNumber xs = Just $ Push $ IntVM $ ((read xs) :: I
 parseVMPush str      | isStringNumber str = Just $ Push $ IntVM $ ((read str) :: Int)
 parseVMPush _        = Nothing
 
+parseJump :: String -> Maybe Int
+parseJump str | isStringNumber str = Just $ ((read str) :: Int)
+parseJump _   = Nothing
+
 parseVM :: String -> Insts
 parseVM str = let (first, next) = firstWord str
                   (second, rest) = firstWord next in
@@ -84,6 +100,12 @@ parseVM str = let (first, next) = firstWord str
                             Just inst -> inst : (parseVM rest)
                             Nothing -> parseVM rest
                 "RET" -> Ret : parseVM rest
+                "JUMPIFFALSE" -> case parseJump second of
+                            Just i -> (JUMPIFFALSE i) : (parseVM rest)
+                            Nothing -> parseVM rest
+                "JUMP" -> case parseJump second of
+                            Just i -> (JUMP i) : (parseVM rest)
+                            Nothing -> parseVM rest
                 _ -> []
 
 startVM :: String -> IO ()
