@@ -5,7 +5,7 @@
 -- Compiler.hs
 -}
 
-module Compiler (compile) where
+module Compiler (compile, myLength, convAst, loopAst) where
 
 import Control.Exception
 import System.Exit
