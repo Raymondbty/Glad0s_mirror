@@ -44,6 +44,10 @@ jobs:
     - name: Generate documentation with Haddock
       run: make docs
 
+
+    - name: Analyze code with Haskell-Platform
+      run: stack build --pedantic
+        
     - name: Check coding style with hlint
       run: hlint . || true
       
