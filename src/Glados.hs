@@ -7,10 +7,12 @@
 
 module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, interpreter, start) where
 
+import CommandLines
+import Compiler
 import Eval (evalAST)
 import Parser (parse)
-import CommandLines
 import Print
+import System.Environment
 import System.IO
 import Types
 import VM
@@ -90,16 +92,18 @@ foundDefine :: [Ast] -> Maybe Env
 foundDefine [(Define str ast)] = Just (Var str ast)
 foundDefine _ = Nothing
 
-parseEnv :: String -> [Env] -> IO ()
-parseEnv line env = do
+parseEnv :: String -> [Env] -> Maybe String -> IO ()
+parseEnv line env file = do
     case foundDefine asts of
-        Just var -> interpreter $ var : env
-        Nothing -> (printAST asts env) >> interpreter env
+        Just var -> interpreter (var : env) file
+        Nothing -> case file of
+                    Just path -> (compile asts path)
+                    Nothing -> (printAST asts env) >> interpreter env file
     where
         asts = (parse line)
 
-interpreter :: [Env] -> IO ()
-interpreter env = do
+interpreter :: [Env] -> Maybe String -> IO ()
+interpreter env file = do
     eof <- isEOF
     if eof
         then return ()
@@ -109,19 +113,24 @@ interpreter env = do
                 "!quit" -> quitCommand
                 "!man" -> do
                     manCommand
-                    interpreter env
+                    interpreter env file
                 "!help" -> do
                     helpCommand
-                    interpreter env
-                "!vm" -> do
-                    case exec [(CallOp DIV)] [(IntVM 42), (IntVM 0)] of
-                        Left err -> putStrLn $ "Error: " ++ err
-                        Right value -> putStrLn $ show $ value
+                    interpreter env file
                 _ -> do
-                    parseEnv line env
+                    parseEnv line env file
 
 start :: IO ()
 start = do
-    interpreter [(Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])))
-                ,(Var "div" (Lambda ["x", "y"] (Call "/" [(Symbol "x"), (Symbol "y")])))
-                ,(Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")])))]
+    args <- getArgs
+    case args of
+        ("--compiler":file:_) -> startInterpreter $ Just file
+        ("--compiler":_) -> putStrLn "--compiler argument need a file"
+        ("--vm":file:_) -> case exec [(CallOp DIV)] [(IntVM 42), (IntVM 0)] of
+                            Left err -> putStrLn $ "Error: " ++ err
+                            Right value -> putStrLn $ show $ value
+        ("--vm":_) -> putStrLn "--vm argument need a file"
+        _ -> startInterpreter Nothing
+    where startInterpreter = interpreter [(Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])))
+                                         ,(Var "div" (Lambda ["x", "y"] (Call "/" [(Symbol "x"), (Symbol "y")])))
+                                         ,(Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")])))]
