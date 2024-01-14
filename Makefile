@@ -1,21 +1,24 @@
-NAME	= 	glados
+NAME = glados
 
 all:
 	stack build
-	cp $(shell stack path --local-install-root)/bin/$(NAME)-exe ./$(NAME)
+	cp $$(stack path --local-install-root)/bin/$(NAME)-exe ./$(NAME)
 
 clean:
-		stack clean
-		$(RM) -f *~
-		$(RM) -f *.o
-		$(RM) -f *.hi
+	stack clean
+	$(RM) -f *~
+	$(RM) -f *.o
+	$(RM) -f *.hi
 
-fclean:	clean
-		$(RM) -f $(NAME)
+fclean: clean
+	$(RM) -f $(NAME)
 
 test:
 	stack test --coverage
 
-re:	fclean all
+re: fclean all
 
-.PHONY:	re fclean clean test all
+docs:
+	stack haddock
+
+.PHONY: re fclean clean test all docs
