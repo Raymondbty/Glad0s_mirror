@@ -62,12 +62,16 @@ parseVMCall "SUB" = Just $ CallOp SUB
 parseVMCall "MUL" = Just $ CallOp MUL
 parseVMCall "DIV" = Just $ CallOp DIV
 parseVMCall "MOD" = Just $ CallOp MOD
+parseVMCall "EQUAL" = Just $ CallOp EQUAL
+parseVMCall "LESS" = Just $ CallOp LESS
 parseVMCall _        = Nothing
 
-parseVMInt :: String -> Maybe Instruction
-parseVMInt ('-':xs) | isStringNumber xs = Just $ Push $ IntVM $ ((read xs) :: Int) * (-1)
-parseVMInt str      | isStringNumber str = Just $ Push $ IntVM $ ((read str) :: Int)
-parseVMInt _        = Nothing
+parseVMPush :: String -> Maybe Instruction
+parseVMPush "True" = Just $ Push $ BoolVM True
+parseVMPush "False" = Just $ Push $ BoolVM False
+parseVMPush ('-':xs) | isStringNumber xs = Just $ Push $ IntVM $ ((read xs) :: Int) * (-1)
+parseVMPush str      | isStringNumber str = Just $ Push $ IntVM $ ((read str) :: Int)
+parseVMPush _        = Nothing
 
 parseVM :: String -> Insts
 parseVM str = let (first, next) = firstWord str
@@ -76,7 +80,7 @@ parseVM str = let (first, next) = firstWord str
                 "CALL" -> case parseVMCall second of
                             Just inst -> inst : (parseVM rest)
                             Nothing -> parseVM rest
-                "PUSH" -> case parseVMInt second of
+                "PUSH" -> case parseVMPush second of
                             Just inst -> inst : (parseVM rest)
                             Nothing -> parseVM rest
                 "RET" -> Ret : parseVM rest
@@ -89,4 +93,6 @@ startVM file = do
         Left e -> (putStrLn ("Exception: " ++ (show e))) >> (exitWith (ExitFailure 84))
         Right content -> case exec (parseVM content) [] of
                             Left err -> putStrLn $ "Error: " ++ err
-                            Right value -> putStrLn $ show $ value
+                            Right value -> case value of
+                                            (IntVM i) -> putStrLn $ show i
+                                            (BoolVM b) -> putStrLn $ show b
