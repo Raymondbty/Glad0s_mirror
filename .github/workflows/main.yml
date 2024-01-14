@@ -41,6 +41,9 @@ jobs:
     - name: Run Tests
       run: make test
 
+    - name: Generate documentation with Haddock
+      run: make docs
+
     - name: Check coding style with hlint
       run: hlint . || true
       
