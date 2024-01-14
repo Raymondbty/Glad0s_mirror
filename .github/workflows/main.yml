@@ -40,10 +40,12 @@ jobs:
 
     - name: Run Tests
       run: make test
+  
+    - name: Measure code coverage
+      run: stack test --coverage
 
     - name: Generate documentation with Haddock
       run: make docs
-
 
     - name: Analyze code with Haskell-Platform
       run: stack build --pedantic
