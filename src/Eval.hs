@@ -72,18 +72,3 @@ evalAST ast env = case ast of
                 (Call func args) -> checkFunc func args env
                 (Symbol str) -> lookSymbolInEnv str env
                 _ -> Right ast
-
--- set place for lambda
-
--- anonymous
-
--- closures
-
--- 1st class
-
--- recursiv
-
--- transfm
-
--- mapping
-
