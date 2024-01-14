@@ -28,6 +28,8 @@ data Operator = ADD
               | MUL
               | DIV
               | MOD
+              | EQUAL
+              | LESS
               deriving Show
 
 data Instruction = Push Value
