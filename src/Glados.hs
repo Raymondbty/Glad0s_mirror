@@ -126,9 +126,7 @@ start = do
     case args of
         ("--compiler":file:_) -> startInterpreter $ Just file
         ("--compiler":_) -> putStrLn "--compiler argument need a file"
-        ("--vm":file:_) -> case exec [(CallOp DIV)] [(IntVM 42), (IntVM 0)] of
-                            Left err -> putStrLn $ "Error: " ++ err
-                            Right value -> putStrLn $ show $ value
+        ("--vm":file:_) -> startVM file
         ("--vm":_) -> putStrLn "--vm argument need a file"
         _ -> startInterpreter Nothing
     where startInterpreter = interpreter [(Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])))

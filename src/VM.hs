@@ -5,8 +5,10 @@
 -- VM.hs
 -}
 
-module VM (exec) where
+module VM (startVM) where
 
+import Control.Exception
+import System.Exit
 import Types
 
 execOpADD :: Stack -> Either String Value
@@ -53,3 +55,15 @@ exec ((Push value):insts) stack = exec insts (value : stack)
 exec (Ret:_) (value:_) = Right value
 exec (Ret:_) [] = Left "no value to return"
 exec [] _ = Left "no instruction"
+
+parseVM :: String -> Insts
+parseVM _ = []
+
+startVM :: String -> IO ()
+startVM file = do
+    result <- try (readFile file) :: IO (Either SomeException String)
+    case result of
+        Left e -> (putStrLn ("Exception: " ++ (show e))) >> (exitWith (ExitFailure 84))
+        Right content -> case exec (parseVM content) [] of
+                            Left err -> putStrLn $ "Error: " ++ err
+                            Right value -> putStrLn $ show $ value
