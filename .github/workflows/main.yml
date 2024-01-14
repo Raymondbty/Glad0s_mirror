@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install stack-outdated
-      run: stack install outdated
+      run: stack install stack-outdated
 
     - name: Check outdated dependencies
       run: stack outdated
