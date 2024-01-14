@@ -12,7 +12,13 @@ import System.Exit
 import Types
 
 convAst :: Ast -> String
-convAst (Call op (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL " ++ op ++ "\n"
+convAst (Call "+" (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL ADD\n"
+convAst (Call "-" (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL SUB\n"
+convAst (Call "*" (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL MUL\n"
+convAst (Call "/" (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL DIV\n"
+convAst (Call "div" (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL DIV\n"
+convAst (Call "%" (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL MOD\n"
+convAst (Call "mod" (ast1:ast2:_)) = (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL MOD\n"
 convAst (IntLiteral i) = "PUSH " ++ (show i) ++ "\n"
 convAst _ = []
 

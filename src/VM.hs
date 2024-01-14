@@ -8,6 +8,7 @@
 module VM (startVM) where
 
 import Control.Exception
+import Parser
 import System.Exit
 import Types
 
@@ -55,8 +56,31 @@ exec ((Push value):insts) stack = exec insts (value : stack)
 exec (Ret:_) (value:_) = Right value
 exec _ _ = Left "no value to return"
 
+parseVMCall :: String -> Maybe Instruction
+parseVMCall "ADD" = Just $ CallOp ADD
+parseVMCall "SUB" = Just $ CallOp SUB
+parseVMCall "MUL" = Just $ CallOp MUL
+parseVMCall "DIV" = Just $ CallOp DIV
+parseVMCall "MOD" = Just $ CallOp MOD
+parseVMCall _        = Nothing
+
+parseVMInt :: String -> Maybe Instruction
+parseVMInt ('-':xs) | isStringNumber xs = Just $ Push $ IntVM $ ((read xs) :: Int) * (-1)
+parseVMInt str      | isStringNumber str = Just $ Push $ IntVM $ ((read str) :: Int)
+parseVMInt _        = Nothing
+
 parseVM :: String -> Insts
-parseVM _ = []
+parseVM str = let (first, next) = firstWord str
+                  (second, rest) = firstWord next in
+              case first of
+                "CALL" -> case parseVMCall second of
+                            Just inst -> inst : (parseVM rest)
+                            Nothing -> parseVM rest
+                "PUSH" -> case parseVMInt second of
+                            Just inst -> inst : (parseVM rest)
+                            Nothing -> parseVM rest
+                "RET" -> Ret : parseVM rest
+                _ -> []
 
 startVM :: String -> IO ()
 startVM file = do
