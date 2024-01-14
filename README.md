@@ -112,7 +112,7 @@ Upon every push to the main branch, a GitHub Actions workflow is triggered. This
   - **Build Project:** Compiles the project using the `make` command.
   - **Run Tests:** Executes unit tests using the `make test` command.
   - **Measure code coverage:** Determines code coverage using `stack test --coverage`.
-  - **Generate documentation with Haddock:** Creates project documentation using `make docs`.
+  - **Generate documentation with Haddock:** Creates project technical documentation using `make docs`.
   - **Analyze code with Haskell-Platform:** Performs code analysis using `stack build --pedantic`.
   - **Check coding style with hlint:** Verifies coding style using `hlint` and ignores errors.
   - **Create Release Artifact:** Uploads the compiled project and test results as an artifact named `release-artifact`.
