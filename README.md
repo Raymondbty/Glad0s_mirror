@@ -84,17 +84,35 @@ Packages used:
 
 --------------------------------------
 
-## CI/CD
+### CI/CD
 
 This project utilizes continuous integration and continuous deployment (CI/CD) pipelines to automate the testing and deployment processes.
 
-- **Build and Test Workflow:** Upon every push to the `main` branch, a GitHub Actions workflow is triggered. This workflow compiles the Glados project, runs unit tests, and creates an artifact.
+#### Build and Test Workflow
 
-- **Mirror to Epitech Repo:** Additionally, the project is mirrored to the Epitech repository using a separate workflow.
+Upon every push to the main branch, a GitHub Actions workflow is triggered. This workflow comprises two main jobs: one for mirroring the project to the Epitech repository and another for building and testing the project.
 
-- **Artifact:** The CI/CD workflow generates an artifact containing the compiled project and test results. This artifact is uploaded for further inspection or deployment.
+##### 1. Mirroring to Epitech Repo
 
---------------------------------------
+- **Trigger:** This job is triggered on every push to the main branch.
+- **Steps:**
+  - **Checkout Repository:** Checks out the repository with full commit history.
+  - **Mirror to Epitech Repo:** Utilizes a custom GitHub Actions action to mirror the project to the specified Epitech repository using SSH key authentication.
+
+##### 2. Building and Testing
+
+- **Trigger:** This job is triggered on every push to the main branch.
+- **Steps:**
+  - **Checkout Repository:** Checks out the repository with full commit history.
+  - **Update stack repository information:** Ensures the stack repository information is up-to-date.
+  - **Install hlint:** Installs the `hlint` tool for checking Haskell code.
+  - **Build Project:** Compiles the project using the `make` command.
+  - **Run Tests:** Executes unit tests using the `make test` command.
+  - **Measure code coverage:** Determines code coverage using `stack test --coverage`.
+  - **Generate documentation with Haddock:** Creates project documentation using `make docs`.
+  - **Analyze code with Haskell-Platform:** Performs code analysis using `stack build --pedantic`.
+  - **Check coding style with hlint:** Verifies coding style using `hlint` and ignores errors.
+  - **Create Release Artifact:** Uploads the compiled project and test results as an artifact named `release-artifact`.
 
 ### Project Architecture
 
