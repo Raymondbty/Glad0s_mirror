@@ -5,7 +5,7 @@
 -- Types.hs
 -}
 
-module Types (Ast(..), Env(..)) where
+module Types (Ast(..), Env(..), Value(..), Operator(..), Instruction(..), Stack, Insts) where
 
 data Ast = Define String Ast
          | Call String [Ast]
@@ -18,3 +18,23 @@ data Ast = Define String Ast
 
 data Env = Var String Ast
          deriving Show
+
+data Value = IntVM Int
+           | BoolVM Bool
+           deriving Show
+
+data Operator = ADD
+              | SUB
+              | MUL
+              | DIV
+              | MOD
+              deriving Show
+
+data Instruction = Push Value
+                 | CallOp Operator
+                 | Ret
+                 deriving Show
+
+type Stack = [Value]
+
+type Insts = [Instruction]

@@ -13,6 +13,7 @@ import CommandLines
 import Print
 import System.IO
 import Types
+import VM
 
 data SExpr = SInt Int
            | SSymbol String
@@ -112,6 +113,8 @@ interpreter env = do
                 "!help" -> do
                     helpCommand
                     interpreter env
+                "!vm" -> do
+                    putStrLn $ show $ exec [(Ret)] [(IntVM 42)]
                 _ -> do
                     parseEnv line env
 
