@@ -63,8 +63,33 @@ testOne = do
       exitCode `shouldBe` ExitSuccess
       output `shouldBe` "12\n"
 
+ifone :: Spec
+ifone = do
+  describe "if2" $ do
+    it "correctly evaluates the example from examples/if1.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "if1.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "1\n"
+
+iftwo :: Spec
+iftwo = do
+  describe "if2" $ do
+    it "correctly evaluates the example from examples/if2.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "if2.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "2\n"
+
 spec :: Spec
 spec = do
     callTestSpec
     errorTestSpec
     fooTestSpec
+    testOne
+    ifone
+    iftwo
