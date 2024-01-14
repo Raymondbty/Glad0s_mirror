@@ -5,7 +5,7 @@
 -- VM.hs
 -}
 
-module VM (startVM) where
+module VM (startVM, execOpADD, execOpSUB, execOpMUL, execOpDIV, execOpMOD, execOpEQUAL, execOpLESS, remInst, execJumpIfFalse, exec, parseVMCall, parseVMPush, parseJump, parseVM) where
 
 import Control.Exception
 import Parser
