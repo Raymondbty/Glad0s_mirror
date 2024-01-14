@@ -11,50 +11,49 @@ import Control.Exception
 import System.Exit
 import Types
 
-execOpADD :: Stack -> Either String Value
-execOpADD ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 + i2
-execOpADD _ = Left "ADD need two integers"
+execOpADD :: Insts -> Stack -> Either String Value
+execOpADD insts ((IntVM i1):(IntVM i2):stack) = exec insts ((IntVM $ i1 + i2) : stack)
+execOpADD _ _ = Left "ADD need two integers"
 
-execOpSUB :: Stack -> Either String Value
-execOpSUB ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 - i2
-execOpSUB _ = Left "SUB need two integers"
+execOpSUB :: Insts -> Stack -> Either String Value
+execOpSUB insts ((IntVM i1):(IntVM i2):stack) = exec insts ((IntVM $ i1 - i2) : stack)
+execOpSUB _ _ = Left "SUB need two integers"
 
-execOpMUL :: Stack -> Either String Value
-execOpMUL ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 * i2
-execOpMUL _ = Left "MUL need two integers"
+execOpMUL :: Insts -> Stack -> Either String Value
+execOpMUL insts ((IntVM i1):(IntVM i2):stack) = exec insts ((IntVM $ i1 * i2) : stack)
+execOpMUL _ _ = Left "MUL need two integers"
 
-execOpDIV :: Stack -> Either String Value
-execOpDIV ((IntVM _):(IntVM 0):_) = Left "division by 0"
-execOpDIV ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 `div` i2
-execOpDIV _ = Left "DIV need two integers"
+execOpDIV :: Insts -> Stack -> Either String Value
+execOpDIV _ ((IntVM _):(IntVM 0):_) = Left "division by 0"
+execOpDIV insts ((IntVM i1):(IntVM i2):stack) = exec insts ((IntVM $ i1 `div` i2) : stack)
+execOpDIV _ _ = Left "DIV need two integers"
 
-execOpMOD :: Stack -> Either String Value
-execOpMOD ((IntVM _):(IntVM 0):_) = Left "modulo by 0"
-execOpMOD ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 `mod` i2
-execOpMOD _ = Left "MOD need two integers"
+execOpMOD :: Insts -> Stack -> Either String Value
+execOpMOD _ ((IntVM _):(IntVM 0):_) = Left "modulo by 0"
+execOpMOD insts ((IntVM i1):(IntVM i2):stack) = exec insts ((IntVM $ i1 `mod` i2) : stack)
+execOpMOD _ _ = Left "MOD need two integers"
 
-execOpEQUAL :: Stack -> Either String Value
-execOpEQUAL ((IntVM i1):(IntVM i2):_) = Right $ BoolVM $ i1 == i2
-execOpEQUAL ((BoolVM b1):(BoolVM b2):_) = Right $ BoolVM $ b1 == b2
-execOpEQUAL _ = Left "EQUAL need two arguments"
+execOpEQUAL :: Insts -> Stack -> Either String Value
+execOpEQUAL insts ((IntVM i1):(IntVM i2):stack) = exec insts ((BoolVM $ i1 == i2) : stack)
+execOpEQUAL insts ((BoolVM b1):(BoolVM b2):stack) = exec insts ((BoolVM $ b1 == b2) : stack)
+execOpEQUAL _ _ = Left "EQUAL need two arguments"
 
-execOpLESS :: Stack -> Either String Value
-execOpLESS ((IntVM i1):(IntVM i2):_) = Right $ BoolVM $ i1 < i2
-execOpLESS ((BoolVM b1):(BoolVM b2):_) = Right $ BoolVM $ b1 < b2
-execOpLESS _ = Left "LESS need two arguments"
+execOpLESS :: Insts -> Stack -> Either String Value
+execOpLESS insts ((IntVM i1):(IntVM i2):stack) = exec insts ((BoolVM $ i1 < i2) : stack)
+execOpLESS insts ((BoolVM b1):(BoolVM b2):stack) = exec insts ((BoolVM $ b1 < b2) : stack)
+execOpLESS _ _ = Left "LESS need two arguments"
 
 exec :: Insts -> Stack -> Either String Value
-exec ((CallOp ADD):_) stack = execOpADD stack
-exec ((CallOp SUB):_) stack = execOpSUB stack
-exec ((CallOp MUL):_) stack = execOpMUL stack
-exec ((CallOp DIV):_) stack = execOpDIV stack
-exec ((CallOp MOD):_) stack = execOpMOD stack
-exec ((CallOp EQUAL):_) stack = execOpEQUAL stack
-exec ((CallOp LESS):_) stack = execOpLESS stack
+exec ((CallOp ADD):insts) stack = execOpADD insts stack
+exec ((CallOp SUB):insts) stack = execOpSUB insts stack
+exec ((CallOp MUL):insts) stack = execOpMUL insts stack
+exec ((CallOp DIV):insts) stack = execOpDIV insts stack
+exec ((CallOp MOD):insts) stack = execOpMOD insts stack
+exec ((CallOp EQUAL):insts) stack = execOpEQUAL insts stack
+exec ((CallOp LESS):insts) stack = execOpLESS insts stack
 exec ((Push value):insts) stack = exec insts (value : stack)
 exec (Ret:_) (value:_) = Right value
-exec (Ret:_) [] = Left "no value to return"
-exec [] _ = Left "no instruction"
+exec _ _ = Left "no value to return"
 
 parseVM :: String -> Insts
 parseVM _ = []

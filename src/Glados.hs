@@ -124,8 +124,8 @@ start :: IO ()
 start = do
     args <- getArgs
     case args of
-        ("--compiler":file:_) -> startInterpreter $ Just file
-        ("--compiler":_) -> putStrLn "--compiler argument need a file"
+        ("--compile":file:_) -> startInterpreter $ Just file
+        ("--compile":_) -> putStrLn "--compile argument need a file"
         ("--vm":file:_) -> startVM file
         ("--vm":_) -> putStrLn "--vm argument need a file"
         _ -> startInterpreter Nothing
