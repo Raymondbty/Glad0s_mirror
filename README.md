@@ -2,6 +2,9 @@
 
 --------------------------------------
 
+The goal of this project is to implement a programming language of our own design, in Haskell. It's a Basic scheme interpreter written all in Haskell.
+We have a Strict testing policy, with more than 190 unit tests and close than 5 Integration tests. This program is on the standart input reading.
+
 ### Compile Glados
 
 ```
