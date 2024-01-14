@@ -114,7 +114,9 @@ interpreter env = do
                     helpCommand
                     interpreter env
                 "!vm" -> do
-                    putStrLn $ show $ exec [(Ret)] [(IntVM 42)]
+                    case exec [(CallOp DIV)] [(IntVM 42), (IntVM 0)] of
+                        Left err -> putStrLn $ "Error: " ++ err
+                        Right value -> putStrLn $ show $ value
                 _ -> do
                     parseEnv line env
 

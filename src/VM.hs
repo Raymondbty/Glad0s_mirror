@@ -9,6 +9,35 @@ module VM (exec) where
 
 import Types
 
-exec :: Insts -> Stack -> Value
-exec ((Ret):_) ((IntVM i):_) = (IntVM i)
-exec _ _ = (IntVM 0)
+execOpADD :: Stack -> Either String Value
+execOpADD ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 + i2
+execOpADD _ = Left "ADD need two integers"
+
+execOpSUB :: Stack -> Either String Value
+execOpSUB ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 - i2
+execOpSUB _ = Left "SUB need two integers"
+
+execOpMUL :: Stack -> Either String Value
+execOpMUL ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 * i2
+execOpMUL _ = Left "MUL need two integers"
+
+execOpDIV :: Stack -> Either String Value
+execOpDIV ((IntVM _):(IntVM 0):_) = Left "division by 0"
+execOpDIV ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 `div` i2
+execOpDIV _ = Left "DIV need two integers"
+
+execOpMOD :: Stack -> Either String Value
+execOpMOD ((IntVM _):(IntVM 0):_) = Left "modulo by 0"
+execOpMOD ((IntVM i1):(IntVM i2):_) = Right $ IntVM $ i1 `mod` i2
+execOpMOD _ = Left "MOD need two integers"
+
+exec :: Insts -> Stack -> Either String Value
+exec ((CallOp ADD):_) stack = execOpADD stack
+exec ((CallOp SUB):_) stack = execOpSUB stack
+exec ((CallOp MUL):_) stack = execOpMUL stack
+exec ((CallOp DIV):_) stack = execOpDIV stack
+exec ((CallOp MOD):_) stack = execOpMOD stack
+exec ((Push value):insts) stack = exec insts (value : stack)
+exec (Ret:_) (value:_) = Right value
+exec (Ret:_) [] = Left "no value to return"
+exec [] _ = Left "no instruction"
