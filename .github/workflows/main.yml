@@ -30,12 +30,20 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Install hlint
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y hlint
+
     - name: Build Project
       run: make
 
     - name: Run Tests
       run: make test
 
+    - name: Check coding style with hlint
+      run: hlint .
+      
     - name: Create Release Artifact
       uses: actions/upload-artifact@v2
       with:
