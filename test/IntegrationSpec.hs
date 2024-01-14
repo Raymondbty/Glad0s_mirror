@@ -39,7 +39,7 @@ errorTestSpec = do
       inputContent <- readFile inputPath
       (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
       exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "variable foo not found\n"
+      output `shouldBe` "Exception: variable foo not found (* \"foo\" 2)\n"
 
 fooTestSpec :: Spec
 fooTestSpec = do
@@ -51,6 +51,17 @@ fooTestSpec = do
       (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
       exitCode `shouldBe` ExitSuccess
       output `shouldBe` "42\n"
+
+testOne :: Spec
+testOne = do
+  describe "firsttest" $ do
+    it "correctly evaluates the example from examples/test1.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test1.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "12\n"
 
 spec :: Spec
 spec = do
