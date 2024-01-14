@@ -30,11 +30,8 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install stack-outdated
-      run: stack install stack-outdated
-
-    - name: Check outdated dependencies
-      run: stack outdated
+    - name: Update stack repository information
+      run: stack update
 
     - name: Install hlint
       run: |
