@@ -15,7 +15,7 @@ import Print
 import System.Environment
 import System.IO
 import Types
-import VM
+import VM()
 
 data SExpr = SInt Int
            | SSymbol String
@@ -39,8 +39,9 @@ printTree (SInt expr) = Just $ "a Number " ++ show expr
 printTree (SSymbol expr) = Just $ "a Symbol '" ++ expr ++ "'"
 printTree (SList []) = Just "an empty List"
 printTree (SList (x:xs)) = case printTree x of
-                                Just expr -> Just $ "(a List with " ++ expr ++ " followed by " ++ printTreeList xs ++ ")"
-                                Nothing -> Just $ "a List with nothing followed by " ++ printTreeList xs
+    Just expr -> Just $ "(a List with " ++ expr ++ " followed by " ++
+                        printTreeList xs ++ ")"
+    Nothing -> Just $ "a List with nothing followed by " ++ printTreeList xs
 
 printTreeList :: [SExpr] -> String
 printTreeList [] = "nothing"
@@ -54,8 +55,10 @@ printTreeList (x:xs) = case printTree x of
 sexprToAST :: SExpr -> Maybe Ast
 sexprToAST (SInt i) = Just $ IntLiteral i
 sexprToAST (SSymbol i) = Just $ StringLiteral i
-sexprToAST (SList [SSymbol "define", SSymbol symbol, SInt i]) = Just $ Define symbol (IntLiteral i)
-sexprToAST (SList [SSymbol "define", SSymbol symbol, SSymbol s]) = Just $ Define symbol (StringLiteral s)
+sexprToAST (SList [SSymbol "define", SSymbol symbol, SInt i]) =
+    Just $ Define symbol (IntLiteral i)
+sexprToAST (SList [SSymbol "define", SSymbol symbol, SSymbol s]) =
+    Just $ Define symbol (StringLiteral s)
 sexprToAST _ = Nothing
 
 type Parser a = String -> Maybe (a , String)
@@ -78,14 +81,15 @@ parseOr p1 p2 list = case p1 list of
 parseAnd :: Parser a -> Parser b -> Parser (a, b)
 parseAnd p1 p2 list = case p1 list of
                         Just (c1, list1) -> case p2 list1 of
-                                                Just (c2, list2) -> Just ((c1, c2), list2)
-                                                Nothing -> Nothing
+                            Just (c2, list2) -> Just ((c1, c2), list2)
+                            Nothing -> Nothing
                         Nothing -> Nothing
 
 printAST :: [Ast] -> [Env] -> IO ()
 printAST [] _ = return ()
 printAST (x:xs) env = case evalAST x env of
-                    Left err -> putStrLn ("Exception: " ++ err ++ " " ++ (prettyPrint x))
+                    Left err -> putStrLn ("Exception: " ++ err ++ " " ++
+                        (prettyPrint x))
                     Right ast -> putStrLn (prettyPrint ast) >> printAST xs env
 
 foundDefine :: [Ast] -> Maybe Env
@@ -93,42 +97,53 @@ foundDefine [(Define str ast)] = Just (Var str ast)
 foundDefine _ = Nothing
 
 parseEnv :: String -> [Env] -> Maybe String -> IO ()
-parseEnv line env file = do
+parseEnv line env file =
     case foundDefine asts of
         Just var -> interpreter (var : env) file
         Nothing -> case file of
-                    Just path -> (compile asts path)
-                    Nothing -> (printAST asts env) >> interpreter env file
-    where
-        asts = (parse line)
+            Just path -> compile asts path
+            Nothing -> printAST asts env >> interpreter env file
+  where
+    asts = parse line
 
 interpreter :: [Env] -> Maybe String -> IO ()
 interpreter env file = do
     eof <- isEOF
     if eof
         then return ()
-        else do
-            line <- getLine
-            case line of
-                "!quit" -> quitCommand
-                "!man" -> do
-                    manCommand
-                    interpreter env file
-                "!help" -> do
-                    helpCommand
-                    interpreter env file
-                _ -> do
-                    parseEnv line env file
+        else processInput env file
+
+processInput :: [Env] -> Maybe String -> IO ()
+processInput env file = do
+    line <- getLine
+    case line of
+        "!quit" -> quitCommand
+        "!man" -> manCommand >> interpreter env file
+        "!help" -> helpCommand >> interpreter env file
+        _ -> parseEnv line env file >> interpreter env file
 
 start :: IO ()
 start = do
     args <- getArgs
     case args of
-        ("--compile":file:_) -> startInterpreter $ Just file
-        ("--compile":_) -> putStrLn "--compile argument need a file"
-        ("--vm":file:_) -> startVM file
-        ("--vm":_) -> putStrLn "--vm argument need a file"
-        _ -> startInterpreter Nothing
-    where startInterpreter = interpreter [(Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])))
-                                         ,(Var "div" (Lambda ["x", "y"] (Call "/" [(Symbol "x"), (Symbol "y")])))
-                                         ,(Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")])))]
+        ("--compile":file:_) -> startCompile file
+        ("--compile":_)      -> putStrLn "--compile argument needs a file"
+        ("--vm":file:_)      -> startVM file
+        ("--vm":_)           -> putStrLn "--vm argument needs a file"
+        _                    -> startInterpreter Nothing
+
+startCompile :: String -> IO ()
+startCompile file = startInterpreter $ Just file
+
+startVM :: String -> IO ()
+startVM file = startInterpreter $ Just file
+
+startInterpreter :: Maybe String -> IO ()
+startInterpreter file = interpreter initialEnv file
+
+initialEnv :: [Env]
+initialEnv =
+    [ Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])),
+      Var "div" (Lambda ["x", "y"] (Call "/" [(Symbol "x"), (Symbol "y")])),
+      Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")]))
+    ]
