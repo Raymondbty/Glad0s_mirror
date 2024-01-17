@@ -56,8 +56,14 @@ jobs:
     - name: Check coding style with hlint
       run: hlint . || true
       
-    - name: Create Release Artifact
+    - name: Create Release Artifact (Binary Only)
       uses: actions/upload-artifact@v2
       with:
-        name: release-artifact
+        name: Artifact-binary
         path: 'glados'
+
+    - name: Create Release Artifact (Whole Project)
+      uses: actions/upload-artifact@v2
+      with:
+        name: Artifact-Glados
+        path: '.' 
