@@ -101,22 +101,32 @@ parseJump _   = Nothing
 
 parseVM :: String -> Insts
 parseVM str = let (first, next) = firstWord str
-                  (second, rest) = firstWord next in
-              case first of
-                "CALL" -> case parseVMCall second of
-                            Just inst -> inst : (parseVM rest)
-                            Nothing -> parseVM rest
-                "PUSH" -> case parseVMPush second of
-                            Just inst -> inst : (parseVM rest)
-                            Nothing -> parseVM rest
-                "RET" -> Ret : parseVM rest
-                "JUMPIFFALSE" -> case parseJump second of
-                            Just i -> (JUMPIFFALSE i) : (parseVM rest)
-                            Nothing -> parseVM rest
-                "JUMP" -> case parseJump second of
-                            Just i -> (JUMP i) : (parseVM rest)
-                            Nothing -> parseVM rest
-                _ -> []
+                  (second, rest) = firstWord next
+              in case first of
+                   "CALL" -> parseVMCallInst second rest
+                   "PUSH" -> parseVMPushInst second rest
+                   "RET" -> Ret : parseVM rest
+                   "JUMPIFFALSE" -> parseJumpInst JUMPIFFALSE second rest
+                   "JUMP" -> parseJumpInst JUMP second rest
+                   _ -> []
+
+parseVMCallInst :: String -> String -> Insts
+parseVMCallInst second rest =
+  case parseVMCall second of
+    Just inst -> inst : parseVM rest
+    Nothing -> parseVM rest
+
+parseVMPushInst :: String -> String -> Insts
+parseVMPushInst second rest =
+  case parseVMPush second of
+    Just inst -> inst : parseVM rest
+    Nothing -> parseVM rest
+
+parseJumpInst :: (Int -> Instruction) -> String -> String -> Insts
+parseJumpInst constructor second rest =
+  case parseJump second of
+    Just i -> constructor i : parseVM rest
+    Nothing -> parseVM rest
 
 startVM :: String -> IO ()
 startVM file = do

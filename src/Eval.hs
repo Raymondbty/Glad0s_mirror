@@ -15,8 +15,8 @@ evalASTCallArgs [] _ = Right []
 evalASTCallArgs (x:xs) env = case evalAST x env of
                                 Left err -> Left err
                                 Right ast -> case evalASTCallArgs xs env of
-                                                Left err -> Left err
-                                                Right asts -> Right (ast : asts)
+                                    Left err -> Left err
+                                    Right asts -> Right (ast : asts)
 
 evalASTCall :: Ast -> [Env] -> Either String Ast
 evalASTCall (Call func args) env = case evalASTCallArgs args env of
@@ -25,10 +25,11 @@ evalASTCall (Call func args) env = case evalASTCallArgs args env of
 evalASTCall ast _ = Right ast
 
 evalASTIfCond :: Ast -> [Env] -> Either String Ast
-evalASTIfCond (Call _ [cond, trueBranch, falseBranch]) env = case evalAST cond env of
-                                                                Right (BoolLiteral True) -> evalAST trueBranch env
-                                                                Right (BoolLiteral False) -> evalAST falseBranch env
-                                                                _ -> Left "require three arguments"
+evalASTIfCond (Call _ [cond, trueBranch, falseBranch]) env =
+    case evalAST cond env of
+        Right (BoolLiteral True) -> evalAST trueBranch env
+        Right (BoolLiteral False) -> evalAST falseBranch env
+        _ -> Left "require three arguments"
 evalASTIfCond _ _ = Left "require three arguments"
 
 getASTInEnv :: String -> [Env] -> Maybe Ast
@@ -39,8 +40,8 @@ getASTInEnv str ((Var key ast):xs) = if str == key
 
 lookSymbolInEnv :: String -> [Env] -> Either String Ast
 lookSymbolInEnv str env = case getASTInEnv str env of
-                                Just ast -> evalAST ast env
-                                Nothing -> Left $ "variable " ++ str ++ " not found"
+    Just ast -> evalAST ast env
+    Nothing -> Left $ "variable " ++ str ++ " not found"
 
 appendVars :: [String] -> [Ast] -> Either String [Env]
 appendVars [] [] = Right []
@@ -54,9 +55,10 @@ appendVars (v:vx) (a:ax) = case appendVars vx ax of
 checkFunc :: String -> [Ast] -> [Env] -> Either String Ast
 checkFunc func args env = case lookSymbolInEnv func env of
                             Left err -> Left err
-                            Right (Lambda vars ast) -> case appendVars vars args of
-                                                        Left err -> Left err
-                                                        Right parms -> evalAST ast (parms ++ env)
+                            Right (Lambda vars ast) ->
+                                case appendVars vars args of
+                                    Left err -> Left err
+                                    Right parms -> evalAST ast (parms ++ env)
                             _ -> Left "no matching function"
 
 evalAST :: Ast -> [Env] -> Either String Ast

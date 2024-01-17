@@ -19,21 +19,21 @@ isStringNumber (x:xs) = isNumber x && isStringNumber xs
 
 firstWord :: String -> (String, String)
 firstWord [] = ([], [])
-firstWord (x:xs) | x == ' ' || x == '\t' || x == '\r' || x == '\n' = ([], xs)
-                 | otherwise = let (str, rest) = (firstWord xs) in
-                               (x : str, rest)
+firstWord (x:xs)
+    | x `elem` " \t\r\n" = ([], xs)
+    | otherwise = let (str, rest) = firstWord xs in
+                  (x : str, rest)
 
 parseList :: (Int, String) -> (String, String)
-parseList (_, []) = ([], [])
 parseList (0, rest) = ([], rest)
-parseList (i, (x:xs)) | x == '(' = let (list, rest) = parseList (i + 1, xs) in
-                                   (x : list, rest)
-                      | x == ')' = let (list, rest) = parseList (i - 1, xs) in
-                                   if i == 1
-                                   then (list, rest)
-                                   else (x : list, rest)
-                      | otherwise = let (list, rest) = parseList (i, xs) in
-                                    (x : list, rest)
+parseList (1, (')':xs)) = ([], xs)
+parseList (i, (')':xs)) = let (list, rest) = parseList (i - 1, xs) in
+                            (')' : list, rest)
+parseList (i, ('(':xs)) = let (list, rest) = parseList (i + 1, xs) in
+                           ('(' : list, rest)
+parseList (i, (x:xs)) = let (list, rest) = parseList (i, xs) in
+                        (x : list, rest)
+parseList (_, []) = ([], [])
 
 parseDefine :: String -> Maybe Ast
 parseDefine args = case parse args of
@@ -78,8 +78,10 @@ parseString (x:xs) = let (str, rest) = (parseString xs) in
                      (x : str, rest)
 
 parseIntSym :: String -> Ast
-parseIntSym ('-':xs) | isStringNumber xs = IntLiteral (((read xs) :: Int) * (-1))
-parseIntSym str      | isStringNumber str = IntLiteral ((read str) :: Int)
+parseIntSym ('-':xs) | isStringNumber xs =
+    IntLiteral (((read xs) :: Int) * (-1))
+parseIntSym str      | isStringNumber str =
+    IntLiteral ((read str) :: Int)
 parseIntSym str      = Symbol str
 
 parse :: String -> [Ast]

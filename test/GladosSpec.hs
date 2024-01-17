@@ -8,7 +8,7 @@
 module GladosSpec (spec) where
 
 import Test.Hspec
-import System.Process
+import System.Process()
 import Glados
 import Types
 import Instances()
