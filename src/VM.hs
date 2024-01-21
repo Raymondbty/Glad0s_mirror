@@ -134,10 +134,8 @@ startVM file = do
     binaryFile <- readBinary file
     case binaryFile of
         Left err -> putStrLn err >> exitWith (ExitFailure 84)
-        Right binary ->
-            case parseVM binary of
-                Just insts ->
-                    case exec insts [] of
+        Right binary -> case parseVM binary of
+                Just insts -> case exec insts [] of
                         Left err -> putStrLn $ "Error: " ++ err
                         Right value -> putStrLn $ show value
                 Nothing -> putStrLn "Error: binary corrupted" >>
