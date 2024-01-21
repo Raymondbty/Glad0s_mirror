@@ -55,12 +55,16 @@ loopAst :: [Ast] -> [Word8]
 loopAst [] = []
 loopAst (x:xs) = (convAst x) ++ (loopAst xs)
 
+getHeader :: [Word8]
+getHeader = [0x2F, 0x47, 0x4C, 0x61, 0x44, 0x4F, 0x53]
+
 compile :: [Ast] -> String -> IO ()
 compile [] _ = return ()
 compile (x:_) path = do
-  result <- try (BS.writeFile path (BS.pack $ (loopAst [x]) ++ [0x02])) ::
-    IO (Either SomeException ())
+  result <- try (BS.writeFile path binary) :: IO (Either SomeException ())
   case result of
     Left e ->
       (putStrLn ("Exception: " ++ (show e))) >> (exitWith (ExitFailure 84))
     Right () -> return ()
+  where
+    binary = BS.pack $ (getHeader ++ loopAst [x]) ++ [0x02]
