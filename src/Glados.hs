@@ -9,6 +9,7 @@ module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeLi
 
 import CommandLines
 import Compiler
+import Disassembler
 import Eval (evalAST)
 import Parser (parse)
 import Print
@@ -128,6 +129,8 @@ start = do
     case args of
         ("--compile":file:_) -> startCompile file
         ("--compile":_)      -> putStrLn "--compile argument needs a file"
+        ("--disassemble":file:_) -> disassemble file
+        ("--disassemble":_)      -> putStrLn "--disassemble needs a file"
         ("--vm":file:_)      -> startVM file
         ("--vm":_)           -> putStrLn "--vm argument needs a file"
         _                    -> startInterpreter Nothing

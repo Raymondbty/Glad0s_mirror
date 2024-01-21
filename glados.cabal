@@ -27,6 +27,7 @@ library
   exposed-modules:
       CommandLines
       Compiler
+      Disassembler
       Eval
       Funcs
       Glados
