@@ -8,17 +8,17 @@
 module Compiler (compile, convAst, loopAst) where
 
 import Control.Exception
-import Data.Bits
 import qualified Data.ByteString as BS
 import Data.Word
 import System.Exit
 import Types
+import Utils
 
 calcJump :: [Word8] -> Int
+calcJump (0x01:_:xs) = 1 + (calcJump xs)
+calcJump (0x02:xs) = 1 + (calcJump xs)
+calcJump (_:_:_:_:_:xs) = 1 + (calcJump xs)
 calcJump _ = 0
-
-intToBytes :: Int -> [Word8]
-intToBytes i = map fromIntegral [i, i `shiftR` 8, i `shiftR` 16, i `shiftR` 24]
 
 convAst :: Ast -> [Word8]
 convAst (Call "+" (ast1:ast2:_)) =

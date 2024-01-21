@@ -35,6 +35,7 @@ library
       Parser
       Print
       Types
+      Utils
       VM
   other-modules:
       Paths_glados

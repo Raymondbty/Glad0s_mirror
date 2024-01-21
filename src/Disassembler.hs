@@ -7,10 +7,10 @@
 
 module Disassembler (disassemble) where
 
-import Data.Bits
 import Data.Word
 import File
 import System.Exit
+import Utils
 
 continueReading :: String -> [Word8] -> Maybe String
 continueReading str xs =
@@ -18,12 +18,6 @@ continueReading str xs =
         Just [] -> Just $ str
         Just code -> Just $ str ++ "\n" ++ code
         Nothing -> Nothing
-
-bytesToInt :: Word8 -> Word8 -> Word8 -> Word8 -> Int
-bytesToInt b1 b2 b3 b4 = (fromIntegral b1)
-                       + (fromIntegral b2 `shiftL` 8)
-                       + (fromIntegral b3 `shiftL` 16)
-                       + (fromIntegral b4 `shiftL` 24)
 
 readInstr :: String -> [Word8] -> Maybe String
 readInstr instr (b1:b2:b3:b4:xs) =
