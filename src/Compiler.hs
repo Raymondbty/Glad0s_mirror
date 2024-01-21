@@ -35,6 +35,8 @@ convAst (Call "?" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL EQUAL\n"
 convAst (Call "<" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ "CALL LESS\n"
+convAst (Call "!" (ast:_)) =
+  (loopAst [ast]) ++ "CALL FACT\n"
 convAst (Call "if" (ast1:ast2:ast3:_)) =
   let cond = loopAst [ast1]
       trueCond =

@@ -30,6 +30,7 @@ data Operator = ADD
               | MOD
               | EQUAL
               | LESS
+              | FACT
               deriving Show
 
 data Instruction = Push Value

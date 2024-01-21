@@ -5,10 +5,26 @@
 -- Funcs.hs
 -}
 
-module Funcs (equal, lower, plus, minus, mul, myDiv, myMod) where
+module Funcs (factorial, fact, equal, lower, plus, minus, mul, myDiv, myMod) where
 
 import Print
 import Types
+
+factorial :: Int -> Either String Int
+factorial n | n < 0 = Left "n must be > or = to 0"
+            | n > 1 = case factorial $ n - 1 of
+                        Left err -> Left err
+                        Right i -> Right $ n * i
+            | otherwise = Right 1
+
+fact :: Either String Ast -> Either String Ast
+fact (Left err) = Left err
+fact (Right ast) = case ast of
+                (Call _ [IntLiteral n]) ->
+                    case factorial n of
+                        Left err -> Left err
+                        Right i -> Right $ IntLiteral i
+                _ -> Left $ "require one argument"
 
 equal :: Either String Ast -> Either String Ast
 equal (Left err) = Left err
