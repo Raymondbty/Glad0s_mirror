@@ -36,6 +36,8 @@ convAst (Call "?" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x05]
 convAst (Call "<" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x06]
+convAst (Call "!" (ast:_)) =
+  (loopAst [ast]) ++ [0x01, 0x07]
 convAst (Call "if" (ast1:ast2:ast3:_)) =
   let cond = loopAst [ast1]
       trueCond =

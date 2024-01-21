@@ -142,5 +142,6 @@ initialEnv :: [Env]
 initialEnv =
     [ Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])),
       Var "div" (Lambda ["x", "y"] (Call "/" [(Symbol "x"), (Symbol "y")])),
-      Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")]))
+      Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")])),
+      Var "fact" (Lambda ["n"] (Call "!" [(Symbol "n")]))
     ]

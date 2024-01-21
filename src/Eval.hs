@@ -64,6 +64,7 @@ checkFunc func args env = case lookSymbolInEnv func env of
 evalAST :: Ast -> [Env] -> Either String Ast
 evalAST ast env = case ast of
                 (Call "if" _) -> evalASTIfCond ast env
+                (Call "!" _) -> fact $ evalASTCall ast env
                 (Call "?" _) -> equal $ evalASTCall ast env
                 (Call "<" _) -> lower $ evalASTCall ast env
                 (Call "+" _) -> plus $ evalASTCall ast env

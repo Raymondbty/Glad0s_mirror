@@ -8,6 +8,7 @@
 module VM (startVM, execOpADD, execOpSUB, execOpMUL, execOpDIV, execOpMOD, execOpEQUAL, execOpLESS, remInst, execJumpIfFalse, exec, parseVMCall, parseVMPush, parseJump, parseVM) where
 
 import Control.Exception
+import Funcs(factorial)
 import Parser
 import System.Exit
 import Types
@@ -53,6 +54,13 @@ execOpLESS insts ((BoolVM b1):(BoolVM b2):stack) =
     exec insts ((BoolVM $ b1 < b2) : stack)
 execOpLESS _ _ = Left "LESS need two arguments"
 
+execOpFACT :: Insts -> Stack -> Either String Value
+execOpFACT insts ((IntVM n):stack) =
+    case factorial n of
+        Left err -> Left err
+        Right i -> exec insts ((IntVM i) : stack)
+execOpFACT _ _ = Left "FACT need one argument"
+
 remInst :: Int -> Insts -> Insts
 remInst _ [] = []
 remInst i (x:xs) | i > 0 = remInst (i - 1) xs
@@ -71,6 +79,7 @@ exec ((CallOp DIV):insts) stack = execOpDIV insts stack
 exec ((CallOp MOD):insts) stack = execOpMOD insts stack
 exec ((CallOp EQUAL):insts) stack = execOpEQUAL insts stack
 exec ((CallOp LESS):insts) stack = execOpLESS insts stack
+exec ((CallOp FACT):insts) stack = execOpFACT insts stack
 exec ((Push value):insts) stack = exec insts (value : stack)
 exec (Ret:_) (value:_) = Right value
 exec ((JUMPIFFALSE i):insts) stack = execJumpIfFalse i insts stack
@@ -85,6 +94,7 @@ parseVMCall "DIV" = Just $ CallOp DIV
 parseVMCall "MOD" = Just $ CallOp MOD
 parseVMCall "EQUAL" = Just $ CallOp EQUAL
 parseVMCall "LESS" = Just $ CallOp LESS
+parseVMCall "FACT" = Just $ CallOp FACT
 parseVMCall _        = Nothing
 
 parseVMPush :: String -> Maybe Instruction
