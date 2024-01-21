@@ -7,10 +7,9 @@
 
 module Disassembler (disassemble) where
 
-import Control.Exception
 import Data.Bits
-import qualified Data.ByteString as BS
 import Data.Word
+import File
 import System.Exit
 
 continueReading :: String -> [Word8] -> Maybe String
@@ -51,21 +50,13 @@ getAssembler (0x03:xs) = readInstr "JumpIfFalse" xs
 getAssembler (0x04:xs) = readInstr "Jump" xs
 getAssembler _ = Nothing
 
-checkHeader :: [Word8] -> Maybe [Word8]
-checkHeader (0x2F:0x47:0x4C:0x61:0x44:0x4F:0x53:xs) = Just xs
-checkHeader _ = Nothing
-
 disassemble :: String -> IO ()
 disassemble file = do
-    result <- try (BS.readFile file) :: IO (Either SomeException BS.ByteString)
-    case result of
-        Left e ->
-            putStrLn ("Exception: " ++ show e) >> exitWith (ExitFailure 84)
-        Right byteStr ->
-            let binary = BS.unpack byteStr in
-            case checkHeader binary of
-                Just binaryRest ->
-                    case getAssembler binaryRest of
-                        Just code -> putStrLn code
-                        Nothing -> putStrLn $ "Error: binary corrupted"
-                Nothing -> putStrLn $ "Error: file is not a GLaDOS binary"
+    binaryFile <- readBinary file
+    case binaryFile of
+        Left err -> putStrLn err >> exitWith (ExitFailure 84)
+        Right binary ->
+            case getAssembler binary of
+                Just code -> putStrLn code
+                Nothing -> putStrLn "Error: binary corrupted" >>
+                    exitWith (ExitFailure 84)

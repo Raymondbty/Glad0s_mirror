@@ -29,6 +29,7 @@ library
       Compiler
       Disassembler
       Eval
+      File
       Funcs
       Glados
       Parser

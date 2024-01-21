@@ -5,11 +5,11 @@
 -- VM.hs
 -}
 
-module VM (startVM, execOpADD, execOpSUB, execOpMUL, execOpDIV, execOpMOD, execOpEQUAL, execOpLESS, remInst, execJumpIfFalse, exec, parseVMCall, parseVMPush, parseJump, parseVM) where
+module VM (startVM, execOpADD, execOpSUB, execOpMUL, execOpDIV, execOpMOD, execOpEQUAL, execOpLESS, remInst, execJumpIfFalse, exec, parseVM) where
 
-import Control.Exception
 import Funcs(factorial)
-import Parser
+import Data.Word
+import File
 import System.Exit
 import Types
 
@@ -86,66 +86,19 @@ exec ((JUMPIFFALSE i):insts) stack = execJumpIfFalse i insts stack
 exec ((JUMP i):insts) stack = exec (remInst i insts) stack
 exec _ _ = Left "no value to return"
 
-parseVMCall :: String -> Maybe Instruction
-parseVMCall "ADD" = Just $ CallOp ADD
-parseVMCall "SUB" = Just $ CallOp SUB
-parseVMCall "MUL" = Just $ CallOp MUL
-parseVMCall "DIV" = Just $ CallOp DIV
-parseVMCall "MOD" = Just $ CallOp MOD
-parseVMCall "EQUAL" = Just $ CallOp EQUAL
-parseVMCall "LESS" = Just $ CallOp LESS
-parseVMCall "FACT" = Just $ CallOp FACT
-parseVMCall _        = Nothing
-
-parseVMPush :: String -> Maybe Instruction
-parseVMPush "True" = Just $ Push $ BoolVM True
-parseVMPush "False" = Just $ Push $ BoolVM False
-parseVMPush ('-':xs) | isStringNumber xs = Just $ Push $ IntVM $ read xs * (-1)
-parseVMPush str      | isStringNumber str = Just $ Push $ IntVM $ read str
-
-parseVMPush _        = Nothing
-
-parseJump :: String -> Maybe Int
-parseJump str | isStringNumber str = Just $ ((read str) :: Int)
-parseJump _   = Nothing
-
-parseVM :: String -> Insts
-parseVM str = let (first, next) = firstWord str
-                  (second, rest) = firstWord next
-              in case first of
-                   "CALL" -> parseVMCallInst second rest
-                   "PUSH" -> parseVMPushInst second rest
-                   "RET" -> Ret : parseVM rest
-                   "JUMPIFFALSE" -> parseJumpInst JUMPIFFALSE second rest
-                   "JUMP" -> parseJumpInst JUMP second rest
-                   _ -> []
-
-parseVMCallInst :: String -> String -> Insts
-parseVMCallInst second rest =
-  case parseVMCall second of
-    Just inst -> inst : parseVM rest
-    Nothing -> parseVM rest
-
-parseVMPushInst :: String -> String -> Insts
-parseVMPushInst second rest =
-  case parseVMPush second of
-    Just inst -> inst : parseVM rest
-    Nothing -> parseVM rest
-
-parseJumpInst :: (Int -> Instruction) -> String -> String -> Insts
-parseJumpInst constructor second rest =
-  case parseJump second of
-    Just i -> constructor i : parseVM rest
-    Nothing -> parseVM rest
+parseVM :: [Word8] -> Maybe Insts
+parseVM _ = Nothing
 
 startVM :: String -> IO ()
 startVM file = do
-    result <- try (readFile file) :: IO (Either SomeException String)
-    case result of
-        Left e ->
-            putStrLn ("Exception: " ++ show e) >> exitWith (ExitFailure 84)
-        Right content -> case exec (parseVM content) [] of
-                            Left err -> putStrLn $ "Error: " ++ err
-                            Right value -> case value of
-                                            (IntVM i) -> putStrLn $ show i
-                                            (BoolVM b) -> putStrLn $ show b
+    binaryFile <- readBinary file
+    case binaryFile of
+        Left err -> putStrLn err >> exitWith (ExitFailure 84)
+        Right binary ->
+            case parseVM binary of
+                Just insts ->
+                    case exec insts [] of
+                        Left err -> putStrLn $ "Error: " ++ err
+                        Right value -> putStrLn $ show value
+                Nothing -> putStrLn "Error: binary corrupted" >>
+                    exitWith (ExitFailure 84)
