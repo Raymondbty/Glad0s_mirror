@@ -15,7 +15,7 @@ import Print
 import System.Environment
 import System.IO
 import Types
-import VM()
+import VM
 
 data SExpr = SInt Int
            | SSymbol String
@@ -134,9 +134,6 @@ start = do
 
 startCompile :: String -> IO ()
 startCompile file = startInterpreter $ Just file
-
-startVM :: String -> IO ()
-startVM file = startInterpreter $ Just file
 
 startInterpreter :: Maybe String -> IO ()
 startInterpreter file = interpreter initialEnv file
