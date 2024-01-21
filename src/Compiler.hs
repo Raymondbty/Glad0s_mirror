@@ -14,8 +14,11 @@ import Data.Word
 import System.Exit
 import Types
 
+calcJump :: [Word8] -> Int
+calcJump _ = 0
+
 intToBytes :: Int -> [Word8]
-intToBytes _ = []
+intToBytes i = map fromIntegral [i, i `shiftR` 8, i `shiftR` 16, i `shiftR` 24]
 
 convAst :: Ast -> [Word8]
 convAst (Call "+" (ast1:ast2:_)) =
@@ -40,11 +43,9 @@ convAst (Call "!" (ast:_)) =
   (loopAst [ast]) ++ [0x01, 0x07]
 convAst (Call "if" (ast1:ast2:ast3:_)) =
   let cond = loopAst [ast1]
-      trueCond =
-        loopAst [ast2] ++ "JUMP " ++ (show $ myLength falseCond) ++ "\n"
+      trueCond = loopAst [ast2] ++ [0x04] ++ (intToBytes $ calcJump falseCond)
       falseCond = loopAst [ast3] in
-    cond ++ "JUMPIFFALSE " ++ (show $ myLength trueCond) ++ "\n" ++ trueCond
-    ++ falseCond
+  cond ++ [0x03] ++ (intToBytes $ calcJump trueCond) ++ trueCond ++ falseCond
 convAst (IntLiteral i) = 0x00 : (intToBytes i)
 convAst (BoolLiteral True) = 0x00 : (intToBytes 1)
 convAst (BoolLiteral False) = 0x00 : (intToBytes 0)
