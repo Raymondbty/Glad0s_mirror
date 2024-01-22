@@ -42,20 +42,22 @@ parseAsParent (x:xs)
 checkLetter :: Char -> Bool
 checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
 
-parseWord :: String -> Maybe (String, String)
-parseWord [] = Just ([], [])
+parseWord :: String -> Maybe (String, String, Bool)
+parseWord [] = Nothing
 parseWord (' ': xs) = parseWord xs
 parseWord (x:xs)
-    | x == ',' || x == ')' = Just ([], xs)
+    | x == ')' = Just ([], xs, True)
+    | x == ',' = Just ([], xs, False)
     | checkLetter x =  case parseWord xs of
-        Just (str, rest) -> Just (x : str, rest)
+        Just (str, rest, res) -> Just (x : str, rest, res)
         Nothing -> Nothing
     | otherwise = Nothing
 
 parseParams :: String -> Maybe ([String], String)
 parseParams [] = Just([], [])
 parseParams str = case parseWord str of
-    Just (arg, rest) -> case parseParams rest of
+    Just (arg, rest, True) -> Just ([arg], rest)
+    Just (arg, rest, False) -> case parseParams rest of
         Just (args, rest1) -> Just (arg : args, rest1)
         Nothing -> Nothing
     Nothing -> Nothing
@@ -64,7 +66,11 @@ parseFunc :: String -> Maybe Ast
 parseFunc [] = Nothing
 parseFunc str = case parseAsParent str of
     Just (name, rest) -> case parseParams rest of
-        Just (args, rest1) -> Just $ Call2 name args []
+        Just (args, rest1) -> case firstBracket rest1 of
+            Just rest2 -> case parseAsBracket rest2 of
+                Just (str2, rest3) -> Just $ Call2 name args []
+                Nothing -> Nothing
+            Nothing -> Nothing
         Nothing -> Nothing
     Nothing -> Nothing
 
