@@ -16,6 +16,20 @@ firstWord (x:xs)
     | otherwise = let (str, rest) = firstWord xs in
                   (x : str, rest)
 
+parseAsBracket :: String -> Maybe (String, String)
+parseAsBracket [] = Nothing
+parseAsBracket (x:xs)
+    | x == '}'  = Just ([], xs)
+    | otherwise = case parseAsBracket xs of
+        Just (str, rest) -> Just (x : str, rest)
+        Nothing -> Nothing
+
+firstBracket :: String -> Maybe String
+firstBracket [] = Just []
+firstBracket (' ':xs) = firstBracket xs
+firstBracket ('{':xs) = Just xs
+firstBracket _ = Nothing
+
 parseAsParent :: String -> Maybe (String, String)
 parseAsParent [] = Just ([], [])
 parseAsParent (' ': xs) = parseAsParent xs
