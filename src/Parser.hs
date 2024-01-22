@@ -9,10 +9,6 @@ module Parser (parse) where
 
 import Types
 
-module Parser (parse) where
-
-import Types
-
 firstWord :: String -> (String, String)
 firstWord [] = ([], [])
 firstWord (x:xs)
@@ -39,3 +35,32 @@ parseWord (x:xs)
         Just (str, rest) -> Just (x : str, rest)
         Nothing -> Nothing
     | otherwise = Nothing
+
+parseParams :: String -> Maybe ([String], String)
+parseParams [] = Just([], [])
+parseParams str = case parseWord str of
+    Just (arg, rest) -> case parseParams rest of
+        Just (args, rest1) -> Just (arg : args, rest1)
+        Nothing -> Nothing
+    Nothing -> Nothing
+
+parseFunc :: String -> Maybe Ast
+parseFunc [] = Nothing
+parseFunc str = case parseAsParent str of
+    Just (name, rest) -> case parseParams rest of
+        Just (args, rest1) -> Just $ Call2 name args []
+        Nothing -> Nothing
+    Nothing -> Nothing
+
+parse :: String -> [Ast]
+parse [] = []
+parse (';':xs) = parse xs
+parse (' ':xs) = parse xs
+parse ('\t':xs) = parse xs
+parse ('\r':xs) = parse xs
+parse ('\n':xs) = parse xs
+parse str = case firstWord str of
+                ("func", rest) -> case parseFunc rest of
+                    Just ast -> [ast]
+                    Nothing -> []
+                _ -> []
