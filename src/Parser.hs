@@ -19,17 +19,15 @@ firstWord (x:xs)
 parseAsBracket :: Int -> String -> Maybe (String, String)
 parseAsBracket 0 rest = Just ([], rest)
 parseAsBracket _ [] = Nothing
-parseAsBracket i (x:xs) = case parseAsBracket j xs of
-                            Just (str, rest) -> if j == 0
-                                                then Just (str, rest)
-                                                else Just (x : str, rest)
-                            Nothing -> Nothing
-    where
-        j = if x == '{'
-            then i + 1
-            else if x == '}'
-                then i - 1
-                else i
+parseAsBracket i ('{':xs) = case parseAsBracket (i + 1) xs of
+                                Just (str, rest) -> Just ('{' : str, rest)
+                                Nothing -> Nothing
+parseAsBracket i ('}':xs) = case parseAsBracket (i - 1) xs of
+                                Just (str, rest) -> Just ('}' : str, rest)
+                                Nothing -> Nothing
+parseAsBracket i (x:xs) = case parseAsBracket i xs of
+                                Just (str, rest) -> Just (x : str, rest)
+                                Nothing -> Nothing
 
 firstBracket :: String -> Maybe String
 firstBracket [] = Just []
@@ -40,9 +38,8 @@ firstBracket _ = Nothing
 parseAsParent :: String -> Maybe (String, String)
 parseAsParent [] = Just ([], [])
 parseAsParent (' ': xs) = parseAsParent xs
-parseAsParent (x:xs)
-    | x == '(' = Just ([], xs)
-    | otherwise = case parseAsParent xs of
+parseAsParent ('(':xs) = Just ([], xs)
+parseAsParent (x:xs) = case parseAsParent xs of
         Just (str, rest) -> Just (x : str, rest)
         Nothing -> Nothing
 
@@ -52,9 +49,9 @@ checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
 parseWord :: String -> Maybe (String, String, Bool)
 parseWord [] = Nothing
 parseWord (' ': xs) = parseWord xs
+parseWord (')':xs) = Just ([], xs, True)
+parseWord (',':xs) = Just ([], xs, False)
 parseWord (x:xs)
-    | x == ')' = Just ([], xs, True)
-    | x == ',' = Just ([], xs, False)
     | checkLetter x =  case parseWord xs of
         Just (str, rest, res) -> Just (x : str, rest, res)
         Nothing -> Nothing
