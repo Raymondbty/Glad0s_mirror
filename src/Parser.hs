@@ -18,6 +18,7 @@ firstWord (x:xs)
 
 parseAsParent :: String -> Maybe (String, String)
 parseAsParent [] = Just ([], [])
+parseAsParent (' ': xs) = parseAsParent xs
 parseAsParent (x:xs)
     | x == '(' = Just ([], xs)
     | otherwise = case parseAsParent xs of
@@ -29,6 +30,7 @@ checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
 
 parseWord :: String -> Maybe (String, String)
 parseWord [] = Just ([], [])
+parseWord (' ': xs) = parseWord xs
 parseWord (x:xs)
     | x == ',' || x == ')' = Just ([], xs)
     | checkLetter x =  case parseWord xs of
