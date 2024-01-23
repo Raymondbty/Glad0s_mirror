@@ -47,6 +47,14 @@ parseAsParent (x:xs)
 checkLetter :: Char -> Bool
 checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
 
+checkString :: String -> Bool
+checkString [] = True
+checkString (x:xs) = (checkLetter x) && (checkString xs)
+
+checkNumbers :: String -> Bool
+checkNumbers [] = True
+checkNumbers (x:xs) = (checkNumber x) && (checkNumbers xs)
+
 parseWord :: String -> Maybe (String, String, Bool)
 parseWord [] = Nothing
 parseWord (' ': xs) = parseWord xs
@@ -109,11 +117,17 @@ parseVariableInt (x:xs)
 parseInt :: String -> Ast
 parseInt str = IntLiteral ((read str) :: Int)
 
+parseStrings :: [String] -> [Ast]
+parseStrings [] = []
+parseStrings (x:xs) = case parseTypes x of
+    Just ast -> ast : (parseStrings xs)
+    Nothing -> []
+
 parseOp :: String -> Maybe (Ast, String)
 parseOp [] = Nothing
 parseOp str = case parseAsParent str of
     Just (name, rest) -> case parseParamsTwo rest of
-        Just (args, rest1) -> Just ((Call2 name args []), rest1)
+        Just (args, rest1) -> Just ((Call name (parseStrings args)), rest1)
         Nothing -> Nothing
     Nothing -> Nothing
 
@@ -171,6 +185,4 @@ parse str = case firstWord str of
                     Nothing -> []
                 (x, xs) -> case parseNum (x ++ xs) of
                     Just (ast, rest1) -> ast : (parse rest1)
-                    Nothing -> case parseOp (x ++ xs) of
-                        Just (ast, rest1) -> ast : (parse rest1)
-                        Nothing -> []
+                    Nothing -> []
