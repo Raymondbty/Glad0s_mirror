@@ -4,33 +4,37 @@
 -- File description:
 -- Parser.hs
 -}
+
 module Parser (parse) where
+
 import Types
+
 firstWord :: String -> (String, String)
 firstWord [] = ([], [])
 firstWord (x:xs)
     | x `elem` " \t\r\n" = ([], xs)
     | otherwise = let (str, rest) = firstWord xs in
                   (x : str, rest)
+
 parseAsBracket :: Int -> String -> Maybe (String, String)
 parseAsBracket 0 rest = Just ([], rest)
 parseAsBracket _ [] = Nothing
-parseAsBracket i (x:xs) = case parseAsBracket j xs of
-                            Just (str, rest) -> if j == 0
-                                                then Just (str, rest)
-                                                else Just (x : str, rest)
-                            Nothing -> Nothing
-    where
-        j = if x == '{'
-            then i + 1
-            else if x == '}'
-                then i - 1
-                else i
+parseAsBracket i ('{':xs) = case parseAsBracket (i + 1) xs of
+                                Just (str, rest) -> Just ('{' : str, rest)
+                                Nothing -> Nothing
+parseAsBracket i ('}':xs) = case parseAsBracket (i - 1) xs of
+                                Just (str, rest) -> Just ('}' : str, rest)
+                                Nothing -> Nothing
+parseAsBracket i (x:xs) = case parseAsBracket i xs of
+                                Just (str, rest) -> Just (x : str, rest)
+                                Nothing -> Nothing
+
 firstBracket :: String -> Maybe String
 firstBracket [] = Just []
 firstBracket (' ':xs) = firstBracket xs
 firstBracket ('{':xs) = Just xs
 firstBracket _ = Nothing
+
 parseAsParent :: String -> Maybe (String, String)
 parseAsParent [] = Just ([], [])
 parseAsParent (' ': xs) = parseAsParent xs
@@ -39,8 +43,10 @@ parseAsParent (x:xs)
     | otherwise = case parseAsParent xs of
         Just (str, rest) -> Just (x : str, rest)
         Nothing -> Nothing
+
 checkLetter :: Char -> Bool
 checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
+
 parseWord :: String -> Maybe (String, String, Bool)
 parseWord [] = Nothing
 parseWord (' ': xs) = parseWord xs
