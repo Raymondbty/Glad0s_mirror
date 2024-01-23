@@ -31,13 +31,11 @@ parseAsBracket i (x:xs) = case parseAsBracket i xs of
 
 firstBracket :: String -> Maybe String
 firstBracket [] = Just []
-firstBracket (' ':xs) = firstBracket xs
 firstBracket ('{':xs) = Just xs
 firstBracket _ = Nothing
 
 parseAsParent :: String -> Maybe (String, String)
 parseAsParent [] = Just ([], [])
-parseAsParent (' ': xs) = parseAsParent xs
 parseAsParent ('(':xs) = Just ([], xs)
 parseAsParent (x:xs) = case parseAsParent xs of
         Just (str, rest) -> Just (x : str, rest)
@@ -48,7 +46,6 @@ checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
 
 parseWord :: String -> Maybe (String, String, Bool)
 parseWord [] = Nothing
-parseWord (' ': xs) = parseWord xs
 parseWord (')':xs) = Just ([], xs, True)
 parseWord (',':xs) = Just ([], xs, False)
 parseWord (x:xs)
@@ -72,7 +69,6 @@ parseString (x:xs) = case parseString xs of
 
 parseVariable :: String -> Maybe (String, String)
 parseVariable [] = Nothing
-parseVariable (' ': xs) = parseVariable xs
 parseVariable ('\t': xs) = parseVariable xs
 parseVariable (x:xs)
     | x == '=' = Just ([], xs)
@@ -83,7 +79,6 @@ parseVariable (x:xs)
 
 parseVariableInt :: String -> Maybe (String, String)
 parseVariableInt [] = Nothing
-parseVariableInt (' ': xs) = parseVariableInt xs
 parseVariableInt (x:xs)
     | x == ';' = Just ([], xs)
     | checkNumber x = case parseVariableInt xs of
@@ -116,14 +111,17 @@ parseParams str = case parseWord str of
 
 parseFunc :: String -> Maybe (Ast, String)
 parseFunc [] = Nothing
-parseFunc str = case parseAsParent str of
-    Just (name, rest) -> case parseParams rest of
-        Just (args, rest1) -> case firstBracket rest1 of
-            Just rest2 -> case parseAsBracket 1 rest2 of
-                Just (str2, rest3) -> Just (Call2 name args (parse str2), rest3)
+parseFunc str = case parseSpace str of
+    Just restWithNoSpace ->
+        case parseAsParent restWithNoSpace of
+            Just (name, rest) -> case parseParams rest of
+                Just (args, rest1) -> case firstBracket rest1 of
+                    Just rest2 -> case parseAsBracket 1 rest2 of
+                        Just (str2, rest3) -> Just (Call2 name args (parse str2), rest3)
+                        Nothing -> Nothing
+                    Nothing -> Nothing
                 Nothing -> Nothing
             Nothing -> Nothing
-        Nothing -> Nothing
     Nothing -> Nothing
 
 parse :: String -> [Ast]
