@@ -58,6 +58,20 @@ parseWord (x:xs)
         Nothing -> Nothing
     | otherwise = Nothing
 
+parseArgs :: String -> Maybe (String, String, Bool)
+parseArgs [] = Nothing
+parseArgs (' ': xs) = parseArgs xs
+parseArgs (x:xs)
+    | x == ')' = Just ([], xs, True)
+    | x == ',' = Just ([], xs, False)
+    | checkLetter x =  case parseArgs xs of
+        Just (str, rest, res) -> Just (x : str, rest, res)
+        Nothing -> Nothing
+    | checkNumber x =  case parseArgs xs of
+    Just (str, rest, res) -> Just (x : str, rest, res)
+    Nothing -> Nothing
+    | otherwise = Nothing
+
 checkNumber :: Char -> Bool
 checkNumber x = (x >= '0' && x <= '9')
 
@@ -95,6 +109,14 @@ parseVariableInt (x:xs)
 parseInt :: String -> Ast
 parseInt str = IntLiteral ((read str) :: Int)
 
+parseOp :: String -> Maybe (Ast, String)
+parseOp [] = Nothing
+parseOp str = case parseAsParent str of
+    Just (name, rest) -> case parseParamsTwo rest of
+        Just (args, rest1) -> Just ((Call2 name args []), rest1)
+        Nothing -> Nothing
+    Nothing -> Nothing
+
 parseNum :: String -> Maybe (Ast, String)
 parseNum [] = Nothing
 parseNum str = case parseVariable str of
@@ -103,6 +125,15 @@ parseNum str = case parseVariable str of
         Nothing -> Nothing
     Just (var, rest) -> case parseVariableInt rest of
         Just (numStr, rest1) -> Just (Define var (parseInt numStr), rest1)
+        Nothing -> Nothing
+    Nothing -> Nothing
+
+parseParamsTwo :: String -> Maybe ([String], String)
+parseParamsTwo [] = Just([], [])
+parseParamsTwo str = case parseArgs str of
+    Just (arg, rest, True) -> Just ([arg], rest)
+    Just (arg, rest, False) -> case parseParamsTwo rest of
+        Just (args, rest1) -> Just (arg : args, rest1)
         Nothing -> Nothing
     Nothing -> Nothing
 
@@ -140,4 +171,6 @@ parse str = case firstWord str of
                     Nothing -> []
                 (x, xs) -> case parseNum (x ++ xs) of
                     Just (ast, rest1) -> ast : (parse rest1)
-                    Nothing -> []
+                    Nothing -> case parseOp (x ++ xs) of
+                        Just (ast, rest1) -> ast : (parse rest1)
+                        Nothing -> []
