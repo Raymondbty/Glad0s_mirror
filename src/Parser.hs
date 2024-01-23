@@ -69,7 +69,6 @@ parseString (x:xs) = case parseString xs of
 
 parseVariable :: String -> Maybe (String, String)
 parseVariable [] = Nothing
-parseVariable ('\t': xs) = parseVariable xs
 parseVariable (x:xs)
     | x == '=' = Just ([], xs)
     | checkLetter x = case parseVariable xs of
@@ -137,15 +136,10 @@ parseFunc str = case parseSpace str of
 
 parse :: String -> [Ast]
 parse [] = []
-parse (';':xs) = parse xs
-parse (' ':xs) = parse xs
-parse ('\t':xs) = parse xs
-parse ('\r':xs) = parse xs
-parse ('\n':xs) = parse xs
 parse str = case firstWord str of
                 ("func", rest) -> case parseFunc rest of
                     Just (ast, rest1) -> ast : (parse rest1)
                     Nothing -> []
-                (x, xs) -> case parseNum (x ++ xs) of
+                (x, xs) -> case parseNum (x ++ " " ++ xs) of
                     Just (ast, rest1) -> ast : (parse rest1)
                     Nothing -> []
