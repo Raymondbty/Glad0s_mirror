@@ -109,6 +109,17 @@ parseParams str = case parseWord str of
         Nothing -> Nothing
     Nothing -> Nothing
 
+parseSpace :: String -> Maybe String
+parseSpace [] = Just []
+parseSpace (' ':xs) = parseSpace xs
+parseSpace ('\t':xs) = parseSpace xs
+parseSpace ('\r':xs) = parseSpace xs
+parseSpace ('\n':xs) = parseSpace xs
+parseSpace ('"':xs) = Just ('"':xs)
+parseSpace (x:xs) = case parseSpace xs of
+    Just rest -> Just (x : rest)
+    Nothing   -> Nothing
+
 parseFunc :: String -> Maybe (Ast, String)
 parseFunc [] = Nothing
 parseFunc str = case parseSpace str of
