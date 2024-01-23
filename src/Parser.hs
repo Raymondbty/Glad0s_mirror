@@ -4,51 +4,49 @@
 -- File description:
 -- Parser.hs
 -}
-
 module Parser (parse) where
-
 import Types
-
 firstWord :: String -> (String, String)
 firstWord [] = ([], [])
 firstWord (x:xs)
     | x `elem` " \t\r\n" = ([], xs)
     | otherwise = let (str, rest) = firstWord xs in
                   (x : str, rest)
-
 parseAsBracket :: Int -> String -> Maybe (String, String)
 parseAsBracket 0 rest = Just ([], rest)
 parseAsBracket _ [] = Nothing
-parseAsBracket i ('{':xs) = case parseAsBracket (i + 1) xs of
-                                Just (str, rest) -> Just ('{' : str, rest)
-                                Nothing -> Nothing
-parseAsBracket i ('}':xs) = case parseAsBracket (i - 1) xs of
-                                Just (str, rest) -> Just ('}' : str, rest)
-                                Nothing -> Nothing
-parseAsBracket i (x:xs) = case parseAsBracket i xs of
-                                Just (str, rest) -> Just (x : str, rest)
-                                Nothing -> Nothing
-
+parseAsBracket i (x:xs) = case parseAsBracket j xs of
+                            Just (str, rest) -> if j == 0
+                                                then Just (str, rest)
+                                                else Just (x : str, rest)
+                            Nothing -> Nothing
+    where
+        j = if x == '{'
+            then i + 1
+            else if x == '}'
+                then i - 1
+                else i
 firstBracket :: String -> Maybe String
 firstBracket [] = Just []
+firstBracket (' ':xs) = firstBracket xs
 firstBracket ('{':xs) = Just xs
 firstBracket _ = Nothing
-
 parseAsParent :: String -> Maybe (String, String)
 parseAsParent [] = Just ([], [])
-parseAsParent ('(':xs) = Just ([], xs)
-parseAsParent (x:xs) = case parseAsParent xs of
+parseAsParent (' ': xs) = parseAsParent xs
+parseAsParent (x:xs)
+    | x == '(' = Just ([], xs)
+    | otherwise = case parseAsParent xs of
         Just (str, rest) -> Just (x : str, rest)
         Nothing -> Nothing
-
 checkLetter :: Char -> Bool
 checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
-
 parseWord :: String -> Maybe (String, String, Bool)
 parseWord [] = Nothing
-parseWord (')':xs) = Just ([], xs, True)
-parseWord (',':xs) = Just ([], xs, False)
+parseWord (' ': xs) = parseWord xs
 parseWord (x:xs)
+    | x == ')' = Just ([], xs, True)
+    | x == ',' = Just ([], xs, False)
     | checkLetter x =  case parseWord xs of
         Just (str, rest, res) -> Just (x : str, rest, res)
         Nothing -> Nothing
@@ -69,6 +67,8 @@ parseString (x:xs) = case parseString xs of
 
 parseVariable :: String -> Maybe (String, String)
 parseVariable [] = Nothing
+parseVariable (' ': xs) = parseVariable xs
+parseVariable ('\t': xs) = parseVariable xs
 parseVariable (x:xs)
     | x == '=' = Just ([], xs)
     | checkLetter x = case parseVariable xs of
@@ -78,6 +78,7 @@ parseVariable (x:xs)
 
 parseVariableInt :: String -> Maybe (String, String)
 parseVariableInt [] = Nothing
+parseVariableInt (' ': xs) = parseVariableInt xs
 parseVariableInt (x:xs)
     | x == ';' = Just ([], xs)
     | checkNumber x = case parseVariableInt xs of
@@ -108,38 +109,29 @@ parseParams str = case parseWord str of
         Nothing -> Nothing
     Nothing -> Nothing
 
-parseSpace :: String -> Maybe String
-parseSpace [] = Just []
-parseSpace (' ':xs) = parseSpace xs
-parseSpace ('\t':xs) = parseSpace xs
-parseSpace ('\r':xs) = parseSpace xs
-parseSpace ('\n':xs) = parseSpace xs
-parseSpace ('"':xs) = Just ('"':xs)
-parseSpace (x:xs) = case parseSpace xs of
-    Just rest -> Just (x : rest)
-    Nothing   -> Nothing
-
 parseFunc :: String -> Maybe (Ast, String)
 parseFunc [] = Nothing
-parseFunc str = case parseSpace str of
-    Just restWithNoSpace ->
-        case parseAsParent restWithNoSpace of
-            Just (name, rest) -> case parseParams rest of
-                Just (args, rest1) -> case firstBracket rest1 of
-                    Just rest2 -> case parseAsBracket 1 rest2 of
-                        Just (str2, rest3) -> Just (Call2 name args (parse str2), rest3)
-                        Nothing -> Nothing
-                    Nothing -> Nothing
+parseFunc str = case parseAsParent str of
+    Just (name, rest) -> case parseParams rest of
+        Just (args, rest1) -> case firstBracket rest1 of
+            Just rest2 -> case parseAsBracket 1 rest2 of
+                Just (str2, rest3) -> Just (Call2 name args (parse str2), rest3)
                 Nothing -> Nothing
             Nothing -> Nothing
+        Nothing -> Nothing
     Nothing -> Nothing
 
 parse :: String -> [Ast]
 parse [] = []
+parse (';':xs) = parse xs
+parse (' ':xs) = parse xs
+parse ('\t':xs) = parse xs
+parse ('\r':xs) = parse xs
+parse ('\n':xs) = parse xs
 parse str = case firstWord str of
                 ("func", rest) -> case parseFunc rest of
                     Just (ast, rest1) -> ast : (parse rest1)
                     Nothing -> []
-                (x, xs) -> case parseNum (x ++ " " ++ xs) of
+                (x, xs) -> case parseNum (x ++ xs) of
                     Just (ast, rest1) -> ast : (parse rest1)
                     Nothing -> []
