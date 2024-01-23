@@ -172,6 +172,17 @@ parseFunc str = case parseAsParent str of
         Nothing -> Nothing
     Nothing -> Nothing
 
+parseTypes :: String -> Maybe Ast
+parseTypes [] = Nothing
+parseTypes ('"':xs) = case parseString xs of
+    Just (str, _) -> Just (StringLiteral str)
+    Nothing -> Nothing
+parseTypes str = case checkString str of
+    True -> Just (Symbol str)
+    False -> case checkNumbers str of
+        True -> Just (parseInt str)
+        False -> Nothing
+
 parse :: String -> [Ast]
 parse [] = []
 parse (';':xs) = parse xs
@@ -185,4 +196,8 @@ parse str = case firstWord str of
                     Nothing -> []
                 (x, xs) -> case parseNum (x ++ xs) of
                     Just (ast, rest1) -> ast : (parse rest1)
-                    Nothing -> []
+                    Nothing -> case parseTypes (x ++ xs) of
+                        Just ast -> [ast]
+                        Nothing -> case parseOp (x ++ xs) of
+                            Just (ast, rest1) -> ast : (parse rest1)
+                            Nothing -> []
