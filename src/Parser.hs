@@ -20,14 +20,17 @@ parseAsBracket :: Int -> String -> Maybe (String, String)
 parseAsBracket 0 rest = Just ([], rest)
 parseAsBracket _ [] = Nothing
 parseAsBracket i ('{':xs) = case parseAsBracket (i + 1) xs of
-                                Just (str, rest) -> Just ('{' : str, rest)
+                            Just (str, rest) -> Just ('{' : str, rest)
+                            Nothing -> Nothing
+parseAsBracket i ('}':xs)
+                            | i > 0 = case parseAsBracket (i - 1) xs of
+                                Just (str, rest) -> Just (str, rest)
                                 Nothing -> Nothing
-parseAsBracket i ('}':xs) = case parseAsBracket (i - 1) xs of
-                                Just (str, rest) -> Just ('}' : str, rest)
-                                Nothing -> Nothing
+                            | otherwise = Nothing
 parseAsBracket i (x:xs) = case parseAsBracket i xs of
-                                Just (str, rest) -> Just (x : str, rest)
-                                Nothing -> Nothing
+                            Just (str, rest) -> Just (x : str, rest)
+                            Nothing -> Nothing
+
 
 firstBracket :: String -> Maybe String
 firstBracket [] = Just []
