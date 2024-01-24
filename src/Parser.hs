@@ -7,23 +7,23 @@
 
 module Parser (parse) where
 
+import Debug.Trace
 import Types
 import Utils
 
 parseAsBracket :: Int -> String -> Either String (String, String)
 parseAsBracket 0 rest = Right ([], rest)
 parseAsBracket _ [] = Left "Unexpected end of input"
+parseAsBracket 1 ('}':xs) = Right ([], xs)
 parseAsBracket i ('{':xs) = case parseAsBracket (i + 1) xs of
-                              Right (str, rest) -> Right ('{' : str, rest)
-                              Left err -> Left err
-parseAsBracket i ('}':xs)
-  | i > 0 = case parseAsBracket (i - 1) xs of
-              Right (str, rest) -> Right (str, rest)
-              Left err -> Left err
-  | otherwise = Left "Unmatched closing bracket"
+                                Right (str, rest) -> Right ('{' : str, rest)
+                                Left err -> Left err
+parseAsBracket i ('}':xs) = case parseAsBracket (i - 1) xs of
+                                Right (str, rest) -> Right ('}' : str, rest)
+                                Left err -> Left err
 parseAsBracket i (x:xs) = case parseAsBracket i xs of
-                            Right (str, rest) -> Right (x : str, rest)
-                            Left err -> Left err
+                                Right (str, rest) -> Right (x : str, rest)
+                                Left err -> Left err
 
 parseAsParent :: String -> Either String (String, String)
 parseAsParent [] = Right ([], [])
@@ -142,7 +142,7 @@ parseFunc str = case parseAsParent str of
     Right (name, rest) -> case parseParams rest of
         Right (args, rest1) -> case firstBracket rest1 of
             Right rest2 -> case parseAsBracket 1 rest2 of
-                Right (str2, rest3) -> Right (Call2 name args (parse str2), rest3)
+                Right (str2, rest3) -> trace rest3 $ Right (Call2 name args (parse str2), rest3)
                 Left err -> Left err
             Left err -> Left err
         Left err -> Left err
