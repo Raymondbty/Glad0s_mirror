@@ -8,13 +8,7 @@
 module Parser (parse) where
 
 import Types
-
-firstWord :: String -> (String, String)
-firstWord [] = ([], [])
-firstWord (x:xs)
-    | x `elem` " \t\r\n" = ([], xs)
-    | otherwise = let (str, rest) = firstWord xs in
-                  (x : str, rest)
+import Utils
 
 parseAsBracket :: Int -> String -> Either String (String, String)
 parseAsBracket 0 rest = Right ([], rest)
@@ -31,12 +25,6 @@ parseAsBracket i (x:xs) = case parseAsBracket i xs of
                             Right (str, rest) -> Right (x : str, rest)
                             Left err -> Left err
 
-firstBracket :: String -> Either String String
-firstBracket [] = Right []
-firstBracket (' ':xs) = firstBracket xs
-firstBracket ('{':xs) = Right xs
-firstBracket _ = Left "No opening bracket found"
-
 parseAsParent :: String -> Either String (String, String)
 parseAsParent [] = Right ([], [])
 parseAsParent (' ':xs) = parseAsParent xs
@@ -45,17 +33,6 @@ parseAsParent (x:xs)
     | otherwise = case parseAsParent xs of
         Right (str, rest) -> Right (x : str, rest)
         Left err -> Left err
-
-checkLetter :: Char -> Bool
-checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
-
-checkString :: String -> Bool
-checkString [] = True
-checkString (x:xs) = (checkLetter x) && (checkString xs)
-
-checkNumbers :: String -> Bool
-checkNumbers [] = True
-checkNumbers (x:xs) = (checkNumber x) && (checkNumbers xs)
 
 parseWord :: String -> Either String (String, String, Bool)
 parseWord [] = Left "Empty input"
@@ -81,9 +58,6 @@ parseArgs (x:xs)
         Right (str, rest, res) -> Right (x : str, rest, res)
         Left err -> Left err
     | otherwise = Left "Invalid input"
-
-checkNumber :: Char -> Bool
-checkNumber x = (x >= '0' && x <= '9')
 
 parseString :: String -> Either String (String, String)
 parseString [] = Left "Empty input"
