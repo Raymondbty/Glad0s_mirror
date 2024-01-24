@@ -7,6 +7,7 @@
 
 module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, start) where
 
+import Debug.Trace
 import CommandLines
 import Compiler
 import Disassembler
@@ -86,24 +87,20 @@ parseAnd p1 p2 list = case p1 list of
                             Nothing -> Nothing
                         Nothing -> Nothing
 
-printAST :: [Ast] -> [Env] -> IO ()
-printAST [] _ = return ()
-printAST (x:xs) env = case evalAST x env of
+printRes :: [Ast] -> IO ()
+printRes [] = return ()
+printRes (x:xs) = do
+    putStrLn $ prettyPrint x
+    printRes xs
+
+run :: [Ast] -> [Env] -> IO ()
+run [] _ = return ()
+run (x:xs) env = case evalAST x env of
                     Left err -> putStrLn ("Exception: " ++ err ++ " " ++
                         (prettyPrint x))
-                    Right ast -> putStrLn (prettyPrint ast) >> printAST xs env
-
-foundDefine :: [Ast] -> Maybe Env
-foundDefine [(Define str ast)] = Just (Var str ast)
-foundDefine _ = Nothing
-
-parseEnv :: String -> [Env] -> Maybe String -> IO ()
-parseEnv line env file =
-    case file of
-        Just path -> compile asts path
-        Nothing -> printAST asts env
-  where
-    asts = parse line
+                    Right (FuncRes asts, env1) -> printRes asts >> run xs env1
+                    Right (Print ast, env1) -> trace ("qzf1: " ++ (show ast)) $ putStrLn (prettyPrint ast) >> run xs env1
+                    Right (ast, env1) -> trace ("qzf2: " ++ (show ast)) $ run xs env1
 
 getInput :: IO (String)
 getInput = isEOF >>= \eof ->
@@ -116,7 +113,7 @@ getInput = isEOF >>= \eof ->
 start :: IO ()
 start = getArgs >>= \args ->
     case args of
-        ("--compile":file:_) -> startCompile file
+        ("--compile":file:_) -> startInterpreter $ Just file
         ("--compile":_)      -> putStrLn "--compile argument needs a file"
         ("--disassemble":file:_) -> disassemble file
         ("--disassemble":_)      -> putStrLn "--disassemble needs a file"
@@ -126,12 +123,14 @@ start = getArgs >>= \args ->
         ("--help":_)         -> helpCommand
         _                    -> startInterpreter Nothing
 
-startCompile :: String -> IO ()
-startCompile file = startInterpreter $ Just file
-
 startInterpreter :: Maybe String -> IO ()
 startInterpreter file = getInput >>= \input ->
-    parseEnv input initialEnv file
+    case file of
+        Just path -> compile asts path
+        Nothing -> run asts initialEnv
+    where
+        --asts = [Func "test" [Call "add" [IntLiteral 1, IntLiteral 2], Call "add" [IntLiteral 3, IntLiteral 4]], Call "test" []] -- parse line
+        asts = [Func "test" [Print $ Call "add" [IntLiteral 1, IntLiteral 2], Print $ Call "add" [IntLiteral 3, IntLiteral 4]], Call "test" []] -- parse line
 
 initialEnv :: [Env]
 initialEnv =

@@ -8,6 +8,7 @@
 module Types (Ast(..), Env(..), Value(..), Operator(..), Instruction(..), Stack, Insts) where
 
 data Ast = Define String Ast
+         | Func String [Ast]
          | Call String [Ast]
          | Call2 String [String] [Ast]
          | IntLiteral Int
@@ -15,9 +16,12 @@ data Ast = Define String Ast
          | Symbol String
          | BoolLiteral Bool
          | Lambda [String] Ast
+         | Print Ast
+         | FuncRes [Ast]
          deriving Show
 
 data Env = Var String Ast
+         | FuncVar String [Ast]
          deriving Show
 
 data Value = IntVM Int

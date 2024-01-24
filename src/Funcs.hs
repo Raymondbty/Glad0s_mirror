@@ -42,11 +42,11 @@ lower (Right ast) = case ast of
                     Right $ BoolLiteral $ x < y
                 _ -> Left $ wrongArguments ast
 
-plus :: Either String Ast -> Either String Ast
+plus :: Either String Ast -> Either String (Ast, [Env])
 plus (Left err) = Left err
 plus (Right ast) = case ast of
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ IntLiteral $ x + y
+                    Right (IntLiteral $ x + y, [])
                 _ -> Left $ wrongArguments ast
 
 minus :: Either String Ast -> Either String Ast

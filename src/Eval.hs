@@ -14,7 +14,7 @@ evalASTCallArgs :: [Ast] -> [Env] -> Either String [Ast]
 evalASTCallArgs [] _ = Right []
 evalASTCallArgs (x:xs) env = case evalAST x env of
                                 Left err -> Left err
-                                Right ast -> case evalASTCallArgs xs env of
+                                Right (ast, _) -> case evalASTCallArgs xs env of
                                     Left err -> Left err
                                     Right asts -> Right (ast : asts)
 
@@ -24,21 +24,30 @@ evalASTCall (Call func args) env = case evalASTCallArgs args env of
                                     Right ast -> Right (Call func ast)
 evalASTCall ast _ = Right ast
 
-evalASTIfCond :: Ast -> [Env] -> Either String Ast
+evalASTIfCond :: Ast -> [Env] -> Either String (Ast, [Env])
 evalASTIfCond (Call _ [cond, trueBranch, falseBranch]) env =
     case evalAST cond env of
-        Right (BoolLiteral True) -> evalAST trueBranch env
-        Right (BoolLiteral False) -> evalAST falseBranch env
+        Right (BoolLiteral True, _) -> evalAST trueBranch env
+        Right (BoolLiteral False, _) -> evalAST falseBranch env
         _ -> Left "require three arguments"
 evalASTIfCond _ _ = Left "require three arguments"
+
+evalASTS :: [Ast] -> [Env] -> [Ast]
+evalASTS [] env = []
+evalASTS(x:xs) env = case evalAST x env of
+                    Left _ -> []
+                    Right (ast, _) -> ast : (evalASTS xs env)
 
 getASTInEnv :: String -> [Env] -> Maybe Ast
 getASTInEnv _ [] = Nothing
 getASTInEnv str ((Var key ast):xs) = if str == key
                                      then Just ast
                                      else getASTInEnv str xs
+getASTInEnv str ((FuncVar key asts):xs) = if str == key
+                                     then Just $ FuncRes $ evalASTS asts xs
+                                     else getASTInEnv str xs
 
-lookSymbolInEnv :: String -> [Env] -> Either String Ast
+lookSymbolInEnv :: String -> [Env] -> Either String (Ast, [Env])
 lookSymbolInEnv str env = case getASTInEnv str env of
     Just ast -> evalAST ast env
     Nothing -> Left $ "variable " ++ str ++ " not found"
@@ -52,26 +61,22 @@ appendVars (v:vx) (a:ax) = case appendVars vx ax of
                             Left err -> Left err
                             Right res -> Right $ (Var v a) : res
 
-checkFunc :: String -> [Ast] -> [Env] -> Either String Ast
+checkFunc :: String -> [Ast] -> [Env] -> Either String (Ast, [Env])
 checkFunc func args env = case lookSymbolInEnv func env of
                             Left err -> Left err
-                            Right (Lambda vars ast) ->
+                            Right ((Lambda vars ast), _) ->
                                 case appendVars vars args of
                                     Left err -> Left err
                                     Right parms -> evalAST ast (parms ++ env)
                             _ -> Left "no matching function"
 
-evalAST :: Ast -> [Env] -> Either String Ast
+evalAST :: Ast -> [Env] -> Either String (Ast, [Env])
 evalAST ast env = case ast of
-                (Call "if" _) -> evalASTIfCond ast env
-                (Call "!" _) -> fact $ evalASTCall ast env
-                (Call "?" _) -> equal $ evalASTCall ast env
-                (Call "<" _) -> lower $ evalASTCall ast env
-                (Call "+" _) -> plus $ evalASTCall ast env
-                (Call "-" _) -> minus $ evalASTCall ast env
-                (Call "*" _) -> mul $ evalASTCall ast env
-                (Call "/" _) -> myDiv $ evalASTCall ast env
-                (Call "%" _) -> myMod $ evalASTCall ast env
-                (Call func args) -> checkFunc func args env
+                (Print ast) -> case evalAST ast env of
+                    Left err -> Left err
+                    Right (ast, env1) -> Right (Print ast, env1)
+                (Func name args) -> Right (ast, (FuncVar name args) : env)
+                (Call "add" _) -> plus $ evalASTCall ast env
+                (Call func args) -> lookSymbolInEnv func env
                 (Symbol str) -> lookSymbolInEnv str env
-                _ -> Right ast
+                _ -> Right (ast, env)
