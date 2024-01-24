@@ -7,7 +7,6 @@
 
 module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, start) where
 
-import Debug.Trace
 import CommandLines
 import Compiler
 import Disassembler
@@ -99,8 +98,8 @@ run (x:xs) env = case evalAST x env of
                     Left err -> putStrLn ("Exception: " ++ err ++ " " ++
                         (prettyPrint x))
                     Right (FuncRes asts, env1) -> printRes asts >> run xs env1
-                    Right (Print ast, env1) -> trace ("qzf1: " ++ (show ast)) $ putStrLn (prettyPrint ast) >> run xs env1
-                    Right (ast, env1) -> trace ("qzf2: " ++ (show ast)) $ run xs env1
+                    Right (Print ast, env1) -> putStrLn (prettyPrint ast) >> run xs env1
+                    Right (ast, env1) -> run xs env1
 
 getInput :: IO (String)
 getInput = isEOF >>= \eof ->
@@ -125,12 +124,10 @@ start = getArgs >>= \args ->
 
 startInterpreter :: Maybe String -> IO ()
 startInterpreter file = getInput >>= \input ->
+    let asts = parse input in
     case file of
         Just path -> compile asts path
         Nothing -> run asts initialEnv
-    where
-        --asts = [Func "test" [Call "add" [IntLiteral 1, IntLiteral 2], Call "add" [IntLiteral 3, IntLiteral 4]], Call "test" []] -- parse line
-        asts = [Func "test" [Print $ Call "add" [IntLiteral 1, IntLiteral 2], Print $ Call "add" [IntLiteral 3, IntLiteral 4]], Call "test" []] -- parse line
 
 initialEnv :: [Env]
 initialEnv =
