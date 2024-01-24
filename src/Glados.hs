@@ -5,7 +5,7 @@
 -- Glados.hs
 -}
 
-module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, interpreter, start) where
+module Glados (SExpr(..), getSymbol, getInteger, getList, printTree, printTreeList, sexprToAST, parseChar, parseAnyChar, parseOr, parseAnd, start) where
 
 import CommandLines
 import Compiler
@@ -99,33 +99,22 @@ foundDefine _ = Nothing
 
 parseEnv :: String -> [Env] -> Maybe String -> IO ()
 parseEnv line env file =
-    case foundDefine asts of
-        Just var -> interpreter (var : env) file
-        Nothing -> case file of
-            Just path -> compile asts path
-            Nothing -> printAST asts env >> interpreter env file
+    case file of
+        Just path -> compile asts path
+        Nothing -> printAST asts env
   where
     asts = parse line
 
-interpreter :: [Env] -> Maybe String -> IO ()
-interpreter env file = do
-    eof <- isEOF
-    if eof
-        then return ()
-        else processInput env file
-
-processInput :: [Env] -> Maybe String -> IO ()
-processInput env file = do
-    line <- getLine
-    case line of
-        "!quit" -> quitCommand
-        "!man" -> manCommand >> interpreter env file
-        "!help" -> helpCommand >> interpreter env file
-        _ -> parseEnv line env file >> interpreter env file
+getInput :: IO (String)
+getInput = isEOF >>= \eof ->
+    case eof of
+        True -> return []
+        False -> getLine >>= \line ->
+            getInput >>= \rest ->
+            return $ line ++ rest
 
 start :: IO ()
-start = do
-    args <- getArgs
+start = getArgs >>= \args ->
     case args of
         ("--compile":file:_) -> startCompile file
         ("--compile":_)      -> putStrLn "--compile argument needs a file"
@@ -133,13 +122,16 @@ start = do
         ("--disassemble":_)      -> putStrLn "--disassemble needs a file"
         ("--vm":file:_)      -> startVM file
         ("--vm":_)           -> putStrLn "--vm argument needs a file"
+        ("--man":_)          -> manCommand
+        ("--help":_)         -> helpCommand
         _                    -> startInterpreter Nothing
 
 startCompile :: String -> IO ()
 startCompile file = startInterpreter $ Just file
 
 startInterpreter :: Maybe String -> IO ()
-startInterpreter file = interpreter initialEnv file
+startInterpreter file = getInput >>= \input ->
+    parseEnv input initialEnv file
 
 initialEnv :: [Env]
 initialEnv =
