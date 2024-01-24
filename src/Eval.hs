@@ -75,6 +75,7 @@ evalAST ast env = case ast of
                 (Print ast) -> case evalAST ast env of
                     Left err -> Left err
                     Right (ast, env1) -> Right (Print ast, env1)
+                (Define name ast) -> Right (ast, (Var name ast) : env)
                 (Func name args) -> Right (ast, (FuncVar name args) : env)
                 (Call "add" _) -> plus $ evalASTCall ast env
                 (Call func args) -> lookSymbolInEnv func env

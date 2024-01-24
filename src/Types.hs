@@ -10,7 +10,6 @@ module Types (Ast(..), Env(..), Value(..), Operator(..), Instruction(..), Stack,
 data Ast = Define String Ast
          | Func String [Ast]
          | Call String [Ast]
-         | Call2 String [String] [Ast]
          | IntLiteral Int
          | StringLiteral String
          | Symbol String

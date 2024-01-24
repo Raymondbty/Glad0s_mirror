@@ -101,6 +101,11 @@ parseStrings (x:xs) = case parseTypes x of
 parseOp :: String -> Either String (Ast, String)
 parseOp [] = Left "Empty input"
 parseOp str = case parseAsParent str of
+    Right ("print", rest) -> case parseParamsTwo rest of
+        Right (args, rest1) -> case parseAst (args !! 0) of
+            Right (ast, _) -> Right ((Print ast), rest1)
+            Left err -> Left err
+        Left err -> Left err
     Right (name, rest) -> case parseParamsTwo rest of
         Right (args, rest1) -> Right (Call name (parseStrings args), rest1)
         Left err -> Left err
@@ -141,7 +146,7 @@ parseFunc str = case parseAsParent str of
     Right (name, rest) -> case parseParams rest of
         Right (args, rest1) -> case firstBracket rest1 of
             Right rest2 -> case parseAsBracket 1 rest2 of
-                Right (str2, rest3) -> Right (Call2 name args (parse str2), rest3)
+                Right (str2, rest3) -> Right (Func name (parse str2), rest3)
                 Left err -> Left err
             Left err -> Left err
         Left err -> Left err
@@ -157,6 +162,15 @@ parseTypes str
     | checkNumbers str = Right (parseInt str)
     | otherwise = Left "Invalid input"
 
+parseAst :: String -> Either String (Ast, String)
+parseAst rest = case parseNum rest of
+        Right (ast, rest1) -> Right (ast, rest1)
+        Left _ -> case parseTypes rest of
+            Right ast -> Right (ast, rest)
+            Left _ -> case parseOp rest of
+                Right (ast, rest2) -> Right (ast, rest2)
+                Left err -> Left err
+
 parse :: String -> [Ast]
 parse [] = []
 parse (';':xs) = parse xs
@@ -168,10 +182,6 @@ parse str = case firstWord str of
     ("func", rest) -> case parseFunc rest of
         Right (ast, rest1) -> ast : parse rest1
         Left _ -> []
-    (x, xs) -> case parseNum (x ++ xs) of
+    (x, xs) -> case parseAst (x ++ xs) of
         Right (ast, rest1) -> ast : parse rest1
-        Left _ -> case parseTypes (x ++ xs) of
-            Right ast -> [ast]
-            Left _ -> case parseOp (x ++ xs) of
-                Right (ast, rest1) -> ast : parse rest1
-                Left _ -> []
+        Left _ -> []
