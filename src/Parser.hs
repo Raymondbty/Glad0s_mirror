@@ -7,7 +7,6 @@
 
 module Parser (parse) where
 
-import Debug.Trace
 import Types
 import Utils
 
@@ -142,7 +141,7 @@ parseFunc str = case parseAsParent str of
     Right (name, rest) -> case parseParams rest of
         Right (args, rest1) -> case firstBracket rest1 of
             Right rest2 -> case parseAsBracket 1 rest2 of
-                Right (str2, rest3) -> trace rest3 $ Right (Call2 name args (parse str2), rest3)
+                Right (str2, rest3) -> Right (Call2 name args (parse str2), rest3)
                 Left err -> Left err
             Left err -> Left err
         Left err -> Left err
