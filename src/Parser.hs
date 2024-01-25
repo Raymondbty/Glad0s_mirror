@@ -101,11 +101,6 @@ parseStrings (x:xs) = case parseTypes x of
 parseOp :: String -> Either String (Ast, String)
 parseOp [] = Left "Empty input"
 parseOp str = case parseAsParent str of
-    Right ("print", rest) -> case parseParamsTwo rest of
-        Right (args, rest1) -> case parseAst (args !! 0) of
-            Right (ast, _) -> Right ((Print ast), rest1)
-            Left err -> Left err
-        Left err -> Left err
     Right (name, rest) -> case parseParamsTwo rest of
         Right (args, rest1) -> Right (Call name (parseStrings args), rest1)
         Left err -> Left err
@@ -119,7 +114,9 @@ parseNum str = case parseVariable str of
         Left err -> Left err
     Right (var, rest) -> case parseVariableInt rest of
         Right (numStr, rest1) -> Right (Define var (parseInt numStr), rest1)
-        Left err -> Left err
+        _ -> case parseOp rest of
+            Right (ast, rest2) -> Right (Define var ast, rest2)
+            Left err -> Left err
     Left err -> Left err
 
 parseParamsTwo :: String -> Either String ([String], String)

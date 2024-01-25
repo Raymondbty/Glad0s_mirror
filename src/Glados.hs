@@ -86,20 +86,17 @@ parseAnd p1 p2 list = case p1 list of
                             Nothing -> Nothing
                         Nothing -> Nothing
 
-printRes :: [Ast] -> IO ()
-printRes [] = return ()
-printRes (x:xs) = do
-    putStrLn $ prettyPrint x
-    printRes xs
+printFuncRes :: [Ast] -> IO ()
+printFuncRes [] = return ()
+printFuncRes (x:xs) = (putStrLn $ prettyPrint x) >> printFuncRes xs
 
 run :: [Ast] -> [Env] -> IO ()
 run [] _ = return ()
 run (x:xs) env = case evalAST x env of
-                    Left err -> putStrLn ("Exception: " ++ err ++ " " ++
-                        (prettyPrint x))
-                    Right (FuncRes asts, env1) -> printRes asts >> run xs env1
-                    Right (Print ast, env1) -> putStrLn (prettyPrint ast) >> run xs env1
-                    Right (ast, env1) -> run xs env1
+    Left err -> putStrLn ("Exception: " ++ err ++ " " ++ (prettyPrint x))
+    Right (FuncRes asts, env1) -> (printFuncRes asts) >> run xs env1
+    Right (Print ast, env1) -> (putStrLn $ prettyPrint ast) >> run xs env1
+    Right (_, env1) -> run xs env1
 
 getInput :: IO (String)
 getInput = isEOF >>= \eof ->
