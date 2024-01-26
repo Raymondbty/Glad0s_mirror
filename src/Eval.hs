@@ -60,6 +60,8 @@ evalAST ast env = case ast of
                     Left err -> Left err
                     Right (asts1, _) -> Right (FuncRes asts1, env)
                 (Call "add" _) -> plus $ evalASTCall ast env
+                (Call "mul" _) -> mul $ evalASTCall ast env
+                (Call "sub" _) -> minus $ evalASTCall ast env
                 (Call "print" [ast1]) -> case evalAST ast1 env of
                     Left err -> Left err
                     Right (ast2, _) -> Right (Print ast2, env)

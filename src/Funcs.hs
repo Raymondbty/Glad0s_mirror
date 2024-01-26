@@ -49,18 +49,18 @@ plus (Right ast) = case ast of
                     Right (IntLiteral $ x + y, [])
                 _ -> Left $ wrongArguments ast
 
-minus :: Either String Ast -> Either String Ast
+minus :: Either String Ast -> Either String (Ast, [Env])
 minus (Left err) = Left err
 minus (Right ast) = case ast of
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ IntLiteral $ x - y
+                    Right $ (IntLiteral $ x - y, [])
                 _ -> Left $ wrongArguments ast
 
-mul :: Either String Ast -> Either String Ast
+mul :: Either String Ast -> Either String (Ast, [Env])
 mul (Left err) = Left err
 mul (Right ast) = case ast of
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ IntLiteral $ x * y
+                    Right $ (IntLiteral $ x * y, [])
                 _ -> Left $ wrongArguments ast
 
 myDiv :: Either String Ast -> Either String Ast
