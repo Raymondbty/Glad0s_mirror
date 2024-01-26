@@ -5,7 +5,8 @@
 -- Funcs.hs
 -}
 
-module Funcs (factorial, fact, equal, lower, plus, minus, mul, myDiv, myMod) where
+module Funcs (factorial, fact, equal, lower,
+plus, minus, mul, myDiv, myMod, greater, myLeq) where
 
 import Print
 import Types
@@ -25,6 +26,13 @@ fact (Right ast) = case ast of
                         Left err -> Left err
                         Right i -> Right $ IntLiteral i
                 _ -> Left $ "require one argument"
+
+myLeq :: Either String Ast -> Either String (Ast, [Env])
+myLeq (Left err) = Left err
+myLeq (Right ast) = case ast of
+    (Call _ [IntLiteral x, IntLiteral y]) ->
+        Right $ (BoolLiteral $ x <= y, [])
+    _ -> Left $ wrongArguments ast
 
 equal :: Either String Ast -> Either String (Ast, [Env])
 equal (Left err) = Left err
