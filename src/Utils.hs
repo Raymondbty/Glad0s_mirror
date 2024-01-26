@@ -38,7 +38,7 @@ checkNumber :: Char -> Bool
 checkNumber x = (x >= '0' && x <= '9')
 
 checkLetter :: Char -> Bool
-checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z' )
+checkLetter x = (x >= 'A' && x <= 'Z') || (x >= 'a' && x <= 'z') || (x == '_')
 
 checkString :: String -> Bool
 checkString [] = True
