@@ -26,20 +26,27 @@ fact (Right ast) = case ast of
                         Right i -> Right $ IntLiteral i
                 _ -> Left $ "require one argument"
 
-equal :: Either String Ast -> Either String Ast
+equal :: Either String Ast -> Either String (Ast, [Env])
 equal (Left err) = Left err
 equal (Right ast) = case ast of
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ BoolLiteral $ x == y
+                    Right $ (BoolLiteral $ x == y, [])
                 (Call _ [StringLiteral str1, StringLiteral str2]) ->
-                    Right $ BoolLiteral $ str1 == str2
+                    Right $ (BoolLiteral $ str1 == str2, [])
                 _ -> Left $ wrongArguments ast
 
-lower :: Either String Ast -> Either String Ast
+lower :: Either String Ast -> Either String (Ast, [Env])
 lower (Left err) = Left err
 lower (Right ast) = case ast of
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ BoolLiteral $ x < y
+                    Right $ (BoolLiteral $ x < y, [])
+                _ -> Left $ wrongArguments ast
+
+greater :: Either String Ast -> Either String (Ast, [Env])
+greater (Left err) = Left err
+greater (Right ast) = case ast of
+                (Call _ [IntLiteral x, IntLiteral y]) ->
+                    Right $ (BoolLiteral $ x < y, [])
                 _ -> Left $ wrongArguments ast
 
 plus :: Either String Ast -> Either String (Ast, [Env])
