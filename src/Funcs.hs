@@ -63,20 +63,20 @@ mul (Right ast) = case ast of
                     Right $ (IntLiteral $ x * y, [])
                 _ -> Left $ wrongArguments ast
 
-myDiv :: Either String Ast -> Either String Ast
+myDiv :: Either String Ast -> Either String (Ast, [Env])
 myDiv (Left err) = Left err
 myDiv (Right ast) = case ast of
                 (Call _ [IntLiteral _, IntLiteral 0]) ->
-                    Right $ IntLiteral 0
+                    Right $ (IntLiteral 0, [])
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ IntLiteral $ x `div` y
+                    Right $ (IntLiteral $ x `div` y, [])
                 _ -> Left $ wrongArguments ast
 
-myMod :: Either String Ast -> Either String Ast
+myMod :: Either String Ast -> Either String (Ast, [Env])
 myMod (Left err) = Left err
 myMod (Right ast) = case ast of
                 (Call _ [IntLiteral _, IntLiteral 0]) ->
-                    Right $ IntLiteral 0
+                    Right $ (IntLiteral 0, [])
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ IntLiteral $ x `mod` y
+                    Right $ (IntLiteral $ x `mod` y, [])
                 _ -> Left $ wrongArguments ast
