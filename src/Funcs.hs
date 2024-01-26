@@ -6,7 +6,7 @@
 -}
 
 module Funcs (factorial, fact, equal, lower,
-plus, minus, mul, myDiv, myMod, greater, myLeq) where
+plus, minus, mul, myDiv, myMod, greater, myLeq, myGeq) where
 
 import Print
 import Types
@@ -32,6 +32,13 @@ myLeq (Left err) = Left err
 myLeq (Right ast) = case ast of
     (Call _ [IntLiteral x, IntLiteral y]) ->
         Right $ (BoolLiteral $ x <= y, [])
+    _ -> Left $ wrongArguments ast
+
+myGeq :: Either String Ast -> Either String (Ast, [Env])
+myGeq (Left err) = Left err
+myGeq (Right ast) = case ast of
+    (Call _ [IntLiteral x, IntLiteral y]) ->
+        Right $ (BoolLiteral $ x >= y, [])
     _ -> Left $ wrongArguments ast
 
 equal :: Either String Ast -> Either String (Ast, [Env])
