@@ -6,7 +6,8 @@
 -}
 
 module Funcs (factorial, fact, equal, lower,
-plus, minus, mul, myDiv, myMod, greater, myLeq, myGeq) where
+plus, minus, mul, myDiv, myMod, greater, myLeq, myGeq,
+notequal) where
 
 import Print
 import Types
@@ -49,6 +50,16 @@ equal (Right ast) = case ast of
                 (Call _ [StringLiteral str1, StringLiteral str2]) ->
                     Right $ (BoolLiteral $ str1 == str2, [])
                 _ -> Left $ wrongArguments ast
+
+notequal :: Either String Ast -> Either String (Ast, [Env])
+notequal (Left err) = Left err
+notequal (Right ast) = case ast of
+                (Call _ [IntLiteral x, IntLiteral y]) ->
+                    Right $ (BoolLiteral $ x /= y, [])
+                (Call _ [StringLiteral str1, StringLiteral str2]) ->
+                    Right $ (BoolLiteral $ str1 /= str2, [])
+                _ -> Left $ wrongArguments ast
+
 
 lower :: Either String Ast -> Either String (Ast, [Env])
 lower (Left err) = Left err
