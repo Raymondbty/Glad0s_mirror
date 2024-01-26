@@ -10,7 +10,9 @@ module Parser (parse) where
 import Types
 import Utils
 
-parseAsBracket :: Int -> String -> Either String (String, String)
+type Parser a = String -> Either String (a, String)
+
+parseAsBracket :: Int -> Parser String
 parseAsBracket 0 rest = Right ([], rest)
 parseAsBracket _ [] = Left "Unexpected end of input"
 parseAsBracket 1 ('}':xs) = Right ([], xs)
@@ -24,7 +26,7 @@ parseAsBracket i (x:xs) = case parseAsBracket i xs of
                                 Right (str, rest) -> Right (x : str, rest)
                                 Left err -> Left err
 
-parseAsParent :: String -> Either String (String, String)
+parseAsParent :: Parser String
 parseAsParent [] = Right ([], [])
 parseAsParent (' ':xs) = parseAsParent xs
 parseAsParent (x:xs)
@@ -58,7 +60,7 @@ parseArgs (x:xs)
         Left err -> Left err
     | otherwise = Left "Invalid input"
 
-parseString :: String -> Either String (String, String)
+parseString :: Parser String
 parseString [] = Left "Empty input"
 parseString ('"':xs) = Right ([], xs)
 parseString ('\\':'"':xs) = case parseString xs of
@@ -68,7 +70,7 @@ parseString (x:xs) = case parseString xs of
     Right (str, rest) -> Right (x : str, rest)
     Left err -> Left err
 
-parseVariable :: String -> Either String (String, String)
+parseVariable :: Parser String
 parseVariable [] = Left "Empty input"
 parseVariable (' ':xs) = parseVariable xs
 parseVariable ('\t':xs) = parseVariable xs
@@ -79,7 +81,7 @@ parseVariable (x:xs)
         Left err -> Left err
     | otherwise = Left "Invalid input"
 
-parseVariableInt :: String -> Either String (String, String)
+parseVariableInt :: Parser String
 parseVariableInt [] = Left "Empty input"
 parseVariableInt (' ':xs) = parseVariableInt xs
 parseVariableInt (x:xs)
@@ -98,7 +100,7 @@ parseStrings (x:xs) = case parseTypes x of
     Right ast -> ast : (parseStrings xs)
     Left _ -> []
 
-parseOp :: String -> Either String (Ast, String)
+parseOp :: Parser Ast
 parseOp [] = Left "Empty input"
 parseOp str = case parseAsParent str of
     Right (name, rest) -> case parseParamsTwo rest of
@@ -106,7 +108,7 @@ parseOp str = case parseAsParent str of
         Left err -> Left err
     Left err -> Left err
 
-parseNum :: String -> Either String (Ast, String)
+parseNum :: Parser Ast
 parseNum [] = Left "Empty input"
 parseNum str = case parseVariable str of
     Right (var, ('"':xs)) -> case parseString xs of
@@ -119,7 +121,7 @@ parseNum str = case parseVariable str of
             Left err -> Left err
     Left err -> Left err
 
-parseParamsTwo :: String -> Either String ([String], String)
+parseParamsTwo :: Parser [String]
 parseParamsTwo [] = Right ([], [])
 parseParamsTwo str = case parseArgs str of
     Right (arg, rest, True) -> Right ([arg], rest)
@@ -128,7 +130,7 @@ parseParamsTwo str = case parseArgs str of
         Left err -> Left err
     Left err -> Left err
 
-parseParams :: String -> Either String ([String], String)
+parseParams :: Parser [String]
 parseParams [] = Right ([], [])
 parseParams str = case parseWord str of
     Right (arg, rest, True) -> Right ([arg], rest)
@@ -137,7 +139,7 @@ parseParams str = case parseWord str of
         Left err -> Left err
     Left err -> Left err
 
-parseFunc :: String -> Either String (Ast, String)
+parseFunc :: Parser Ast
 parseFunc [] = Left "Empty input"
 parseFunc str = case parseAsParent str of
     Right (name, rest) -> case parseParams rest of
@@ -159,7 +161,7 @@ parseTypes str
     | checkNumbers str = Right (parseInt str)
     | otherwise = Left "Invalid input"
 
-parseAst :: String -> Either String (Ast, String)
+parseAst :: Parser Ast
 parseAst rest = case parseNum rest of
         Right (ast, rest1) -> Right (ast, rest1)
         Left _ -> case parseTypes rest of
