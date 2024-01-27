@@ -7,20 +7,32 @@
 
 module Parser (parse) where
 
+import Control.Applicative
 import ParserUtils
 import Types
 
 parseInt :: Parser Ast
 parseInt = Parser $ \str ->
-    case runParser (parseSome (parseAnyChar ['0'..'9'])) str of
+    case runParser parseNumber str of
         Just (res, rest) -> Just (IntLiteral $ ((read res) :: Int), rest)
         Nothing -> Nothing
 
+parseSymbol :: Parser Ast
+parseSymbol = Parser $ \str ->
+    case runParser parseVar str of
+        Just (res, rest) -> Just (Symbol res, rest)
+        Nothing -> Nothing
+
 parseOr :: Parser Ast
-parseOr = parseInt
+parseOr = parseInt <|> parseSymbol
 
 parse :: String -> Either String [Ast]
 parse [] = Right []
+parse (';':xs) = parse xs
+parse (' ':xs) = parse xs
+parse ('\t':xs) = parse xs
+parse ('\r':xs) = parse xs
+parse ('\n':xs) = parse xs
 parse str =
     case runParser parseOr str of
         Just (ast, rest) ->

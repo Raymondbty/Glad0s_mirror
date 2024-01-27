@@ -5,7 +5,7 @@
 -- ParserUtils.hs
 -}
 
-module ParserUtils (parseChar, parseAnyChar, parseSome) where
+module ParserUtils (parseChar, parseNumber, parseVar) where
 
 import Types
 
@@ -34,3 +34,9 @@ parseSome parser = Parser $ \str ->
                 Just (res1, rest1) -> Just (res : res1, rest1)
                 Nothing -> Just ([res], rest)
         Nothing -> Nothing
+
+parseNumber :: Parser String
+parseNumber = (parseSome (parseAnyChar ['0'..'9']))
+
+parseVar :: Parser String
+parseVar = (parseSome (parseAnyChar $ '_' : ['A'..'Z'] ++ ['a'..'z']))
