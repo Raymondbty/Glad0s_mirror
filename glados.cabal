@@ -33,6 +33,7 @@ library
       Funcs
       Glados
       Parser
+      ParserUtils
       Print
       Types
       Utils
