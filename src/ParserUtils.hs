@@ -5,7 +5,7 @@
 -- ParserUtils.hs
 -}
 
-module ParserUtils (parseChar, parseNumber, parseVar, parseStr) where
+module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep) where
 
 import Types
 
@@ -25,6 +25,15 @@ parseAnyChar list = Parser $ \str ->
     case str of
         (x:xs) | isInList x list -> Just (x, xs)
         _ -> Nothing
+
+parseMany :: Parser a -> Parser [a]
+parseMany parser = Parser $ \str ->
+    case runParser parser str of
+        Just (res, rest) ->
+            case runParser (parseMany parser) rest of
+                Just (res1, rest1) -> Just (res : res1, rest1)
+                Nothing -> Just ([res], rest)
+        Nothing -> Just ([], str)
 
 parseSome :: Parser a -> Parser [a]
 parseSome parser = Parser $ \str ->
@@ -53,3 +62,6 @@ parseStr = Parser $ \str ->
             case runParser parseStr xs of
                 Just (res, rest) -> Just (x : res, rest)
                 Nothing -> Nothing
+
+parseSep :: Parser String
+parseSep = parseMany (parseChar ' ') <* parseChar ';'

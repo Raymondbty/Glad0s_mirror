@@ -33,9 +33,9 @@ parseString :: Parser Ast
 parseString = parseChar '"' *> parseStringContent <* parseChar '"'
 
 parseOr :: Parser Ast
-parseOr = parseInt <* parseChar ';'
-      <|> parseSymbol <* parseChar ';'
-      <|> parseString <* parseChar ';'
+parseOr = parseInt <* parseSep
+      <|> parseSymbol <* parseSep
+      <|> parseString <* parseSep
 
 parse :: String -> Either String [Ast]
 parse [] = Right []
