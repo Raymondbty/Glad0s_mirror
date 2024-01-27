@@ -7,180 +7,37 @@
 
 module Parser (parse) where
 
+import Control.Applicative
 import Types
 import Utils
 
-type Parser a = String -> Either String (a, String)
+data Parser a = Parser {
+    runParser :: String -> Maybe (a, String)
+}
 
-parseAsBracket :: Int -> Parser String
-parseAsBracket 0 rest = Right ([], rest)
-parseAsBracket _ [] = Left "Unexpected end of input"
-parseAsBracket 1 ('}':xs) = Right ([], xs)
-parseAsBracket i ('{':xs) = case parseAsBracket (i + 1) xs of
-                                Right (str, rest) -> Right ('{' : str, rest)
-                                Left err -> Left err
-parseAsBracket i ('}':xs) = case parseAsBracket (i - 1) xs of
-                                Right (str, rest) -> Right ('}' : str, rest)
-                                Left err -> Left err
-parseAsBracket i (x:xs) = case parseAsBracket i xs of
-                                Right (str, rest) -> Right (x : str, rest)
-                                Left err -> Left err
+instance Functor Parser where
+    fmap fct parser = Parser $ \str ->
+        case runParser parser str of
+            Just (res, rest) -> Just (fct res, rest)
+            Nothing -> Nothing
 
-parseAsParent :: Parser String
-parseAsParent [] = Right ([], [])
-parseAsParent (' ':xs) = parseAsParent xs
-parseAsParent (x:xs)
-    | x == '(' = Right ([], xs)
-    | otherwise = case parseAsParent xs of
-        Right (str, rest) -> Right (x : str, rest)
-        Left err -> Left err
+instance Applicative Parser where
+    pure res = Parser $ \rest -> Just (res, rest)
+    parserf <*> parser = Parser $ \str ->
+        case runParser parserf str of
+            Just (fct, rest) ->
+                case runParser parser rest of
+                    Just (res, rest1) -> Just (fct res, rest1)
+                    Nothing -> Nothing
+            Nothing -> Nothing
 
-parseWord :: String -> Either String (String, String, Bool)
-parseWord [] = Left "Empty input"
-parseWord (' ':xs) = parseWord xs
-parseWord (x:xs)
-    | x == ')' = Right ([], xs, True)
-    | x == ',' = Right ([], xs, False)
-    | checkLetter x = case parseWord xs of
-        Right (str, rest, res) -> Right (x : str, rest, res)
-        Left err -> Left err
-    | otherwise = Left "Invalid input"
+instance Alternative Parser where
+    empty = Parser $ \_ -> Nothing
+    parser1 <|> parser2 = Parser $ \str ->
+        case runParser parser1 str of
+            Just (res, rest) -> Just (res, rest)
+            Nothing -> runParser parser2 str
 
-parseArgs :: String -> Either String (String, String, Bool)
-parseArgs [] = Left "Empty input"
-parseArgs (' ':xs) = parseArgs xs
-parseArgs (x:xs)
-    | x == ')' = Right ([], xs, True)
-    | x == ',' = Right ([], xs, False)
-    | checkLetter x = case parseArgs xs of
-        Right (str, rest, res) -> Right (x : str, rest, res)
-        Left err -> Left err
-    | checkNumber x = case parseArgs xs of
-        Right (str, rest, res) -> Right (x : str, rest, res)
-        Left err -> Left err
-    | otherwise = Left "Invalid input"
-
-parseString :: Parser String
-parseString [] = Left "Empty input"
-parseString ('"':xs) = Right ([], xs)
-parseString ('\\':'"':xs) = case parseString xs of
-    Right (str, rest) -> Right ('"' : str, rest)
-    Left err -> Left err
-parseString (x:xs) = case parseString xs of
-    Right (str, rest) -> Right (x : str, rest)
-    Left err -> Left err
-
-parseVariable :: Parser String
-parseVariable [] = Left "Empty input"
-parseVariable (' ':xs) = parseVariable xs
-parseVariable ('\t':xs) = parseVariable xs
-parseVariable (x:xs)
-    | x == '=' = Right ([], xs)
-    | checkLetter x = case parseVariable xs of
-        Right (str, rest) -> Right (x : str, rest)
-        Left err -> Left err
-    | otherwise = Left "Invalid input"
-
-parseVariableInt :: Parser String
-parseVariableInt [] = Left "Empty input"
-parseVariableInt (' ':xs) = parseVariableInt xs
-parseVariableInt (x:xs)
-    | x == ';' = Right ([], xs)
-    | checkNumber x = case parseVariableInt xs of
-        Right (str, rest) -> Right (x : str, rest)
-        Left err -> Left err
-    | otherwise = Left "Invalid input"
-
-parseInt :: String -> Ast
-parseInt str = IntLiteral ((read str) :: Int)
-
-parseStrings :: [String] -> [Ast]
-parseStrings [] = []
-parseStrings (x:xs) = case parseTypes x of
-    Right ast -> ast : (parseStrings xs)
-    Left _ -> []
-
-parseOp :: Parser Ast
-parseOp [] = Left "Empty input"
-parseOp str = case parseAsParent str of
-    Right (name, rest) -> case parseParamsTwo rest of
-        Right (args, rest1) -> Right (Call name (parseStrings args), rest1)
-        Left err -> Left err
-    Left err -> Left err
-
-parseNum :: Parser Ast
-parseNum [] = Left "Empty input"
-parseNum str = case parseVariable str of
-    Right (var, ('"':xs)) -> case parseString xs of
-        Right (str1, rest2) -> Right (Define var (StringLiteral str1), rest2)
-        Left err -> Left err
-    Right (var, rest) -> case parseVariableInt rest of
-        Right (numStr, rest1) -> Right (Define var (parseInt numStr), rest1)
-        _ -> case parseOp rest of
-            Right (ast, rest2) -> Right (Define var ast, rest2)
-            Left err -> Left err
-    Left err -> Left err
-
-parseParamsTwo :: Parser [String]
-parseParamsTwo [] = Right ([], [])
-parseParamsTwo str = case parseArgs str of
-    Right (arg, rest, True) -> Right ([arg], rest)
-    Right (arg, rest, False) -> case parseParamsTwo rest of
-        Right (args, rest1) -> Right (arg : args, rest1)
-        Left err -> Left err
-    Left err -> Left err
-
-parseParams :: Parser [String]
-parseParams [] = Right ([], [])
-parseParams str = case parseWord str of
-    Right (arg, rest, True) -> Right ([arg], rest)
-    Right (arg, rest, False) -> case parseParams rest of
-        Right (args, rest1) -> Right (arg : args, rest1)
-        Left err -> Left err
-    Left err -> Left err
-
-parseFunc :: Parser Ast
-parseFunc [] = Left "Empty input"
-parseFunc str = case parseAsParent str of
-    Right (name, rest) -> case parseParams rest of
-        Right (args, rest1) -> case firstBracket rest1 of
-            Right rest2 -> case parseAsBracket 1 rest2 of
-                Right (str2, rest3) -> Right (Func name (parse str2), rest3)
-                Left err -> Left err
-            Left err -> Left err
-        Left err -> Left err
-    Left err -> Left err
-
-parseTypes :: String -> Either String Ast
-parseTypes [] = Left "Empty input"
-parseTypes ('"':xs) = case parseString xs of
-    Right (str, _) -> Right (StringLiteral str)
-    Left err -> Left err
-parseTypes str
-    | checkString str = Right (Symbol str)
-    | checkNumbers str = Right (parseInt str)
-    | otherwise = Left "Invalid input"
-
-parseAst :: Parser Ast
-parseAst rest = case parseNum rest of
-        Right (ast, rest1) -> Right (ast, rest1)
-        Left _ -> case parseTypes rest of
-            Right ast -> Right (ast, rest)
-            Left _ -> case parseOp rest of
-                Right (ast, rest2) -> Right (ast, rest2)
-                Left err -> Left err
-
-parse :: String -> [Ast]
-parse [] = []
-parse (';':xs) = parse xs
-parse (' ':xs) = parse xs
-parse ('\t':xs) = parse xs
-parse ('\r':xs) = parse xs
-parse ('\n':xs) = parse xs
-parse str = case firstWord str of
-    ("func", rest) -> case parseFunc rest of
-        Right (ast, rest1) -> ast : parse rest1
-        Left _ -> []
-    (x, xs) -> case parseAst (x ++ xs) of
-        Right (ast, rest1) -> ast : parse rest1
-        Left _ -> []
+parse :: String -> Either String [Ast]
+parse [] = Right []
+parse _ = Left "test"

@@ -121,10 +121,12 @@ start = getArgs >>= \args ->
 
 startInterpreter :: Maybe String -> IO ()
 startInterpreter file = getInput >>= \input ->
-    let asts = parse input in
-    case file of
-        Just path -> compile asts path
-        Nothing -> run asts initialEnv
+    case parse input of
+        Right asts ->
+            case file of
+                Just path -> compile asts path
+                Nothing -> run asts initialEnv
+        Left err -> putStrLn $ "Parser error: " ++ err
 
 initialEnv :: [Env]
 initialEnv =
