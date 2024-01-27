@@ -23,8 +23,19 @@ parseSymbol = Parser $ \str ->
         Just (res, rest) -> Just (Symbol res, rest)
         Nothing -> Nothing
 
+parseStringContent :: Parser Ast
+parseStringContent = Parser $ \str ->
+    case runParser parseStr str of
+        Just (res, rest) -> Just (StringLiteral res, rest)
+        Nothing -> Nothing
+
+parseString :: Parser Ast
+parseString = parseChar '"' *> parseStringContent <* parseChar '"'
+
 parseOr :: Parser Ast
-parseOr = parseInt <|> parseSymbol
+parseOr = parseInt <* parseChar ';'
+      <|> parseSymbol <* parseChar ';'
+      <|> parseString <* parseChar ';'
 
 parse :: String -> Either String [Ast]
 parse [] = Right []
