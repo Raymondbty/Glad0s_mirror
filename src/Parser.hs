@@ -32,14 +32,16 @@ parseStringContent = Parser $ \str ->
 parseString :: Parser Ast
 parseString = parseChar '"' *> parseStringContent <* parseChar '"'
 
-parseFuncContent :: Parser Ast
-parseFuncContent = Parser $ \str ->
+parseFuncContent :: String -> Parser Ast
+parseFuncContent name = Parser $ \str ->
     case runParser parse str of
-        Just (asts, rest) -> Just (Func "tst" asts, rest)
+        Just (asts, rest) -> Just (Func name asts, rest)
         Nothing -> Nothing
 
 parseFunc :: Parser Ast
-parseFunc = parseChar '{' *> parseFuncContent <* parseChar '}'
+parseFunc =
+    parseVar >>= \name ->
+        parseSpaces *> parseChar '{' *> parseFuncContent name <* parseChar '}'
 
 parseOr :: Parser Ast
 parseOr = parseInt <* parseSep

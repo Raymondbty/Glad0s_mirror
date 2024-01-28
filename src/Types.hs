@@ -76,3 +76,10 @@ instance Alternative Parser where
         case runParser parser1 str of
             Just (res, rest) -> Just (res, rest)
             Nothing -> runParser parser2 str
+
+instance Monad Parser where
+    return = pure
+    parser >>= fct = Parser $ \str ->
+        case runParser parser str of
+            Just (res, rest) -> runParser (fct res) rest
+            Nothing -> Nothing
