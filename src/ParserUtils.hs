@@ -5,7 +5,7 @@
 -- ParserUtils.hs
 -}
 
-module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep) where
+module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep, parseSpaces) where
 
 import Types
 
@@ -64,4 +64,7 @@ parseStr = Parser $ \str ->
                 Nothing -> Nothing
 
 parseSep :: Parser String
-parseSep = parseMany (parseChar ' ') <* parseChar ';'
+parseSep = parseSpaces <* parseChar ';'
+
+parseSpaces :: Parser String
+parseSpaces = parseMany (parseChar ' ')
