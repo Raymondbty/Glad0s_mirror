@@ -5,7 +5,7 @@
 -- ParserUtils.hs
 -}
 
-module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep, parseSpaces) where
+module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep, parseSpaces, parseList, parseWord) where
 
 import Types
 
@@ -68,3 +68,43 @@ parseSep = parseSpaces <* parseChar ';'
 
 parseSpaces :: Parser String
 parseSpaces = parseMany (parseChar ' ')
+
+parseListArgs :: Parser [String]
+parseListArgs = Parser $ \str ->
+    case str of
+        [] -> Nothing
+        (' ':xs) -> runParser parseListArgs xs
+        ('\t':xs) -> runParser parseListArgs xs
+        ('\r':xs) -> runParser parseListArgs xs
+        ('\n':xs) -> runParser parseListArgs xs
+        (')':xs) -> Just ([], ')' : xs)
+        _ -> runParser parseVar str >>= \(var, str1) ->
+            case runParser parseSpaces str1 of
+                Just (_, (',':xs)) -> fct var xs
+                Just (_, (')':xs)) -> fct var (')' : xs)
+                _ -> Nothing
+    where
+        fct var rest =
+            case runParser parseListArgs rest of
+                Just (var1, rest1) -> Just (var : var1, rest1)
+                Nothing -> Nothing
+
+parseList :: Parser [String]
+parseList = Parser $ \str ->
+    case str of
+        [] -> Nothing
+        (')':xs) -> Just ([], ')' : xs)
+        _ ->
+            case runParser parseListArgs str of
+                Just (args, rest) -> Just (args, rest)
+                Nothing -> Nothing
+
+parseWord :: String -> Parser String
+parseWord [] = Parser $ \str -> Just ([], str)
+parseWord (w:ws) = Parser $ \str ->
+    case str of
+        (x:xs) | x == w ->
+            case runParser (parseWord ws) xs of
+                Just (word, rest) -> Just ((w : word), rest)
+                Nothing -> Nothing
+        _ -> Nothing
