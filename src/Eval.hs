@@ -64,6 +64,8 @@ evalAST ast env = case ast of
                 (Call "div" _) -> myDiv $ evalASTCall ast env
                 (Call "mod" _) -> myMod $ evalASTCall ast env
                 (Call "sub" _) -> minus $ evalASTCall ast env
+                (Call "equal" _) -> equal $ evalASTCall ast env
+                (Call "if" _) -> evalASTIfCond ast env
                 (Call "print" [ast1]) -> case evalAST ast1 env of
                     Left err -> Left err
                     Right (ast2, _) -> Right (Print ast2, env)
