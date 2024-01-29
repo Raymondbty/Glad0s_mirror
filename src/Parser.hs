@@ -11,6 +11,13 @@ import Control.Applicative
 import ParserUtils
 import Types
 
+parseBool :: Parser Ast
+parseBool = Parser $ \str ->
+    case runParser parseVar str of
+        Just ("true", rest) -> Just (BoolLiteral True, rest)
+        Just ("false", rest) -> Just (BoolLiteral False, rest)
+        _ -> Nothing
+
 parseInt :: Parser Ast
 parseInt = Parser $ \str ->
     case runParser parseNumber str of
@@ -32,22 +39,83 @@ parseStringContent = Parser $ \str ->
 parseString :: Parser Ast
 parseString = parseChar '"' *> parseStringContent <* parseChar '"'
 
-parseFuncContent :: String -> Parser Ast
-parseFuncContent name = Parser $ \str ->
+parseFuncContent :: String -> [String] -> Parser Ast
+parseFuncContent name _ = Parser $ \str ->
     case runParser parse str of
         Just (asts, rest) -> Just (Func name asts, rest)
         Nothing -> Nothing
 
 parseFunc :: Parser Ast
 parseFunc =
+    parseWord "func " *> parseSpaces *>
     parseVar >>= \name ->
-        parseSpaces *> parseChar '{' *> parseFuncContent name <* parseChar '}'
+        parseSpaces *> parseChar '(' *> parseSpaces *> parseList >>= \var ->
+            parseChar ')' *> parseSpaces *> parseChar '{' *> parseFuncContent name var <* parseChar '}'
+
+parseFuncCallContent :: String -> Parser Ast
+parseFuncCallContent name = Parser $ \str ->
+    case runParser parseListCall str of
+        Just (asts, rest) -> Just (Call name asts, rest)
+        Nothing -> Nothing
+
+parseFuncCall :: Parser Ast
+parseFuncCall =
+    parseVar >>= \name ->
+        parseSpaces *> parseChar '(' *> parseFuncCallContent name <* parseChar ')'
+
+parseDefineSet :: String -> Parser Ast
+parseDefineSet name = Parser $ \str ->
+    case runParser parseCallOr str of
+        Just (ast, rest) -> Just (Define name ast, rest)
+        Nothing -> Nothing
+
+parseDefine :: Parser Ast
+parseDefine =
+    parseVar >>= \name ->
+        parseSpaces *> parseChar '=' *> parseSpaces *> parseDefineSet name
 
 parseOr :: Parser Ast
 parseOr = parseInt <* parseSep
+      <|> parseBool <* parseSep
       <|> parseSymbol <* parseSep
       <|> parseString <* parseSep
       <|> parseFunc
+      <|> parseFuncCall <* parseSep
+      <|> parseDefine <* parseSep
+
+parseCallOr :: Parser Ast
+parseCallOr = parseSpaces *> parseInt <* parseCallSep
+      <|> parseSpaces *> parseBool <* parseCallSep
+      <|> parseSpaces *> parseFuncCall <* parseCallSep
+      <|> parseSpaces *> parseSymbol <* parseCallSep
+      <|> parseSpaces *> parseString <* parseCallSep
+
+parseCallSep :: Parser String
+parseCallSep = parseSpaces <* parseChar ',' <* parseSpaces
+      <|> parseSpaces
+
+parseListArgsCall :: Parser [Ast]
+parseListArgsCall = Parser $ \str ->
+    case str of
+        [] -> Nothing
+        (')':xs) -> Just ([], ')' : xs)
+        _ ->
+            case runParser parseCallOr str of
+                Just (ast, rest) ->
+                    case runParser parseListArgsCall rest of
+                        Just (asts, rest1) -> Just (ast : asts, rest1)
+                        Nothing -> Nothing
+                Nothing -> Nothing
+
+parseListCall :: Parser [Ast]
+parseListCall = Parser $ \str ->
+    case str of
+        [] -> Nothing
+        (')':xs) -> Just ([], ')' : xs)
+        _ ->
+            case runParser parseListArgsCall str of
+                Just (args, rest) -> Just (args, rest)
+                Nothing -> Nothing
 
 parse :: Parser [Ast]
 parse = Parser $ \str ->
