@@ -48,7 +48,10 @@ parseNumber :: Parser String
 parseNumber = (parseSome (parseAnyChar ['0'..'9']))
 
 parseVar :: Parser String
-parseVar = (parseSome (parseAnyChar $ '_' : ['A'..'Z'] ++ ['a'..'z']))
+parseVar = (:) <$> (parseAnyChar list)
+               <*> (parseMany (parseAnyChar $ list ++ ['0'..'9']))
+    where
+        list = '_' : ['A'..'Z'] ++ ['a'..'z']
 
 parseStr :: Parser String
 parseStr = Parser $ \str ->
