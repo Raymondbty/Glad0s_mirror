@@ -50,7 +50,8 @@ parseFunc =
     parseWord "func " *> parseSpaces *>
     parseVar >>= \name ->
         parseSpaces *> parseChar '(' *> parseSpaces *> parseList >>= \var ->
-            parseChar ')' *> parseSpaces *> parseChar '{' *> parseFuncContent name var <* parseChar '}'
+            parseChar ')' *> parseSpaces *> parseChar '{' *> parseFuncContent
+            name var <* parseChar '}'
 
 parseFuncCallContent :: String -> Parser Ast
 parseFuncCallContent name = Parser $ \str ->
@@ -61,7 +62,8 @@ parseFuncCallContent name = Parser $ \str ->
 parseFuncCall :: Parser Ast
 parseFuncCall =
     parseVar >>= \name ->
-        parseSpaces *> parseChar '(' *> parseFuncCallContent name <* parseChar ')'
+        parseSpaces *> parseChar '(' *> parseFuncCallContent
+        name <* parseChar ')'
 
 parseDefineSet :: String -> Parser Ast
 parseDefineSet name = Parser $ \str ->
