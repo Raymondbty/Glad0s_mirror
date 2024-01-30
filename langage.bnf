@@ -1,25 +1,33 @@
-<program> ::= <expression>
+<program> ::= <statement>+
 
-<expression> ::= <atom> | <list>
+<statement> ::= <assignment> ";" | <function_declaration> | <function_call> ";"
 
-<atom> ::= <symbol> | <number> | <boolean> | <string>
+<assignment> ::= <variable> "=" <expression>
 
-<symbol> ::= <letter>
+<variable> ::= [a-zA-Z_][a-zA-Z0-9_]*
 
-<number> ::= <integer>
+<expression> ::= <term> | <expression> "+" <term> | <expression> "-" <term>
 
-<integer> ::= <digit>
+<term> ::= <factor> | <term> "*" <factor> | <term> "/" <factor>
 
-<boolean> ::= "true" | "false"
+<factor> ::= <variable> | <number> | <function_call> | <boolean_expression> | <char_expression>
 
-<string> ::= "\"" <character> "\""
+<number> ::= [0-9]+
 
-<list> ::= "(" <expression> ")"
+<boolean_expression> ::= <comparison_expression> | "true" | "false"
 
-<character> ::= <letter>
+<comparison_operator> ::= "==" | "!=" | "<=" | ">="
 
-<letter> ::= "a" | "b" | ... | "z" | "A" | "B" | ... | "Z"
+<comparison_expression> ::= <expression> <comparison_operator> <expression>
 
-<digit> ::= "0" | "1" | ... | "9"
+<char_expression> ::= "'\n'" | "'\t'" | "'\r'"
 
-<special-char> ::= "+" | "-" | "*" | "/" | "%" | "<" | "?"
+<function_declaration> ::= "func" <function_name> "(" <parameter_list> ")" "{" <statement>+ "}"
+
+<function_call> ::= <function_name> "(" <argument_list> ")"
+
+<function_name> ::= [a-zA-Z_][a-zA-Z0-9_]*
+
+<parameter_list> ::= <variable> ("," <variable>)* | ε
+
+<argument_list> ::= <expression> ("," <expression>)* | ε
