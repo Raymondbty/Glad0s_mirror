@@ -7,6 +7,7 @@
 
 module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep, parseSpaces, parseList, parseWord) where
 
+import Control.Applicative
 import Types
 
 parseChar :: Char -> Parser Char
@@ -46,6 +47,7 @@ parseSome parser = Parser $ \str ->
 
 parseNumber :: Parser String
 parseNumber = (parseSome (parseAnyChar ['0'..'9']))
+          <|> (:) <$> (parseChar '-') <*> (parseSome (parseAnyChar ['0'..'9']))
 
 parseVar :: Parser String
 parseVar = (:) <$> (parseAnyChar list)
