@@ -40,9 +40,9 @@ parseString :: Parser Ast
 parseString = parseChar '"' *> parseStringContent <* parseChar '"'
 
 parseFuncContent :: String -> [String] -> Parser Ast
-parseFuncContent name _ = Parser $ \str ->
+parseFuncContent name args = Parser $ \str ->
     case runParser parse str of
-        Just (asts, rest) -> Just (Func name asts, rest)
+        Just (asts, rest) -> Just (Func name args asts, rest)
         Nothing -> Nothing
 
 parseFunc :: Parser Ast

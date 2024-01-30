@@ -5,23 +5,29 @@
 -- Print.hs
 -}
 
-module Print (prettyPrint, wrongArguments) where
+module Print (prettyPrint, prettyPrintString, wrongArguments) where
 
 import Types
 
 prettyPrintList :: [Ast] -> String
-prettyPrintList [] = ""
-prettyPrintList (x:xs) = " " ++ (prettyPrint x) ++ (prettyPrintList xs)
+prettyPrintList [] = []
+prettyPrintList [x] = prettyPrint x
+prettyPrintList (x:xs) = (prettyPrint x) ++ ", " ++ (prettyPrintList xs)
 
 prettyPrint :: Ast -> String
 prettyPrint (IntLiteral i) = show i
 prettyPrint (StringLiteral str) = show str
-prettyPrint (Call symbol list) = "(" ++ symbol ++ (prettyPrintList list) ++ ")"
+prettyPrint (Call symbol list) = symbol ++ "(" ++ (prettyPrintList list) ++ ");"
 prettyPrint (BoolLiteral b) = show b
-prettyPrint (Symbol str) = show str
+prettyPrint (Symbol str) = str
 prettyPrint (Lambda _ _) = "#<procedure>"
 prettyPrint (Print ast) = prettyPrint ast
 prettyPrint ast = show ast
+
+prettyPrintString :: Ast -> String
+prettyPrintString (StringLiteral str) = str
+prettyPrintString (Print ast) = prettyPrintString ast
+prettyPrintString ast = prettyPrint ast
 
 wrongArguments :: Ast -> String
 wrongArguments _ = "require two arguments"

@@ -37,9 +37,26 @@ getASTInEnv _ [] = Nothing
 getASTInEnv str ((Var key ast):xs) = if str == key
                                      then Just ast
                                      else getASTInEnv str xs
-getASTInEnv str ((FuncVar key asts):xs) = if str == key
-                                     then Just $ FuncRes asts
+getASTInEnv str ((FuncVar key args asts):xs) = if str == key
+                                     then Just $ FuncArgs args asts
                                      else getASTInEnv str xs
+
+evalFuncCallArgs :: [String] -> [Ast] -> Maybe [Env]
+evalFuncCallArgs [] [] = Just []
+evalFuncCallArgs [] _ = Nothing
+evalFuncCallArgs _ [] = Nothing
+evalFuncCallArgs (x:xs) ((Symbol s):as) | x == s = evalFuncCallArgs xs as
+evalFuncCallArgs (x:xs) (a:as) = case evalFuncCallArgs xs as of
+                                    Just env -> Just $ (Var x a) : env
+                                    Nothing -> Nothing
+
+getFuncASTInEnv :: String -> [Ast] -> [Env] -> Either String (Ast, [Env])
+getFuncASTInEnv func args env =
+    case getASTInEnv func env of
+        Just (FuncArgs astsArgs asts) -> case evalFuncCallArgs astsArgs args of
+            Just env1 -> evalAST (FuncRes asts) (env1 ++ env)
+            Nothing -> Left $ "function " ++ func ++ " wrong arguments"
+        _ -> Left $ "function " ++ func ++ " not found"
 
 evalFunction :: [Ast] -> [Env] -> Either String ([Ast], [Env])
 evalFunction [] env = Right ([], env)
@@ -55,7 +72,7 @@ evalFunction (x:xs) env = case evalAST x env of
 evalAST :: Ast -> [Env] -> Either String (Ast, [Env])
 evalAST ast env = case ast of
                 (Define name ast1) -> Right (ast1, (Var name ast1) : env)
-                (Func name args) -> Right (ast, (FuncVar name args) : env)
+                (Func name args asts) -> Right (ast, (FuncVar name args asts) : env)
                 (FuncRes asts) -> case evalFunction asts env of
                     Left err -> Left err
                     Right (asts1, _) -> Right (FuncRes asts1, env)
@@ -70,9 +87,7 @@ evalAST ast env = case ast of
                     Left err -> Left err
                     Right (ast2, _) -> Right (Print ast2, env)
                 (Call "print" _) -> Left "print takes only one argument"
-                (Call func args) -> case getASTInEnv func env of
-                    Just ast1 -> evalAST ast1 env
-                    Nothing -> Left $ "function " ++ func ++ " not found"
+                (Call func args) -> getFuncASTInEnv func args env
                 (Symbol str) -> case getASTInEnv str env of
                     Just ast1 -> evalAST ast1 env
                     Nothing -> Left $ "variable " ++ str ++ " not found"

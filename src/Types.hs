@@ -10,7 +10,7 @@ module Types (Ast(..), Env(..), Value(..), Operator(..), Instruction(..), Stack,
 import Control.Applicative
 
 data Ast = Define String Ast
-         | Func String [Ast]
+         | Func String [String] [Ast]
          | Call String [Ast]
          | IntLiteral Int
          | StringLiteral String
@@ -18,11 +18,12 @@ data Ast = Define String Ast
          | BoolLiteral Bool
          | Lambda [String] Ast
          | Print Ast
+         | FuncArgs [String] [Ast]
          | FuncRes [Ast]
          deriving Show
 
 data Env = Var String Ast
-         | FuncVar String [Ast]
+         | FuncVar String [String] [Ast]
          deriving Show
 
 data Value = IntVM Int
