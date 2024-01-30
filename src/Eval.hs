@@ -69,6 +69,16 @@ evalFunction (x:xs) env = case evalAST x env of
         Left err -> Left err
         Right (asts, env2) -> Right (asts, env2)
 
+evalPrint :: [Ast] -> [Env] -> Either String [Ast]
+evalPrint [] _ = Right []
+evalPrint (x:xs) env =
+    case evalAST x env of
+        Left err -> Left err
+        Right (ast, _) ->
+            case evalPrint xs env of
+                            Left err -> Left err
+                            Right asts -> Right $ ast : asts
+
 evalAST :: Ast -> [Env] -> Either String (Ast, [Env])
 evalAST ast env = case ast of
                 (Define name ast1) -> Right (ast1, (Var name ast1) : env)
@@ -83,10 +93,9 @@ evalAST ast env = case ast of
                 (Call "sub" _) -> minus $ evalASTCall ast env
                 (Call "equal" _) -> equal $ evalASTCall ast env
                 (Call "if" _) -> evalASTIfCond ast env
-                (Call "print" [ast1]) -> case evalAST ast1 env of
+                (Call "print" asts) -> case evalPrint asts env of
                     Left err -> Left err
-                    Right (ast2, _) -> Right (Print ast2, env)
-                (Call "print" _) -> Left "print takes only one argument"
+                    Right asts1 -> Right (Print asts1, env)
                 (Call func args) -> getFuncASTInEnv func args env
                 (Symbol str) -> case getASTInEnv str env of
                     Just ast1 -> evalAST ast1 env

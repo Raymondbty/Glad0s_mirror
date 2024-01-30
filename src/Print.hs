@@ -21,12 +21,14 @@ prettyPrint (Call symbol list) = symbol ++ "(" ++ (prettyPrintList list) ++ ");"
 prettyPrint (BoolLiteral b) = show b
 prettyPrint (Symbol str) = str
 prettyPrint (Lambda _ _) = "#<procedure>"
-prettyPrint (Print ast) = prettyPrint ast
+prettyPrint (Print []) = []
+prettyPrint (Print (x:xs)) = (prettyPrint x) ++ (prettyPrint (Print xs))
 prettyPrint ast = show ast
 
 prettyPrintString :: Ast -> String
 prettyPrintString (StringLiteral str) = str
-prettyPrintString (Print ast) = prettyPrintString ast
+prettyPrintString (Print []) = []
+prettyPrintString (Print (x:xs)) = (prettyPrintString x) ++ (prettyPrintString (Print xs))
 prettyPrintString ast = prettyPrint ast
 
 wrongArguments :: Ast -> String
