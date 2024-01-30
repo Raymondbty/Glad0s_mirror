@@ -24,7 +24,7 @@ printFuncRes (x:xs) = (putStrLn $ prettyPrintString x) >> printFuncRes xs
 
 run :: [Ast] -> [Env] -> IO ()
 run [] _ = return ()
-run (x:xs) env = case evalAST x env of
+run (x:xs) env = case evalAST 1 x env of
     Left err -> putStrLn ("Exception: " ++ err ++ ": " ++ (prettyPrint x))
     Right (FuncRes asts, env1) -> (printFuncRes asts) >> run xs env1
     Right (Print asts, env1) -> (putStrLn $ prettyPrintString (Print asts)) >> run xs env1
