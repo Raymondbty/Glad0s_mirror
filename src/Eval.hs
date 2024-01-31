@@ -94,6 +94,11 @@ evalAST j ast env = let i = j + 1 in
                 (Call "mod" _) -> myMod $ evalASTCall i ast env
                 (Call "sub" _) -> minus $ evalASTCall i ast env
                 (Call "equal" _) -> equal $ evalASTCall i ast env
+                (Call "ne" _) -> notequal $ evalASTCall i ast env
+                (Call "leq" _) -> myLeq $ evalASTCall i ast env
+                (Call "geq" _) -> myGeq $ evalASTCall i ast env
+                (Call "lower" _) -> lower $ evalASTCall i ast env
+                (Call "greater" _) -> greater $ evalASTCall i ast env
                 (Call "if" _) -> evalASTIfCond i ast env
                 (Call "print" asts) -> case evalPrint i asts env of
                     Left err -> Left err

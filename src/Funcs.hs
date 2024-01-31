@@ -72,7 +72,7 @@ greater :: Either String Ast -> Either String (Ast, [Env])
 greater (Left err) = Left err
 greater (Right ast) = case ast of
                 (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (BoolLiteral $ x < y, [])
+                    Right $ (BoolLiteral $ x > y, [])
                 _ -> Left $ wrongArguments ast
 
 plus :: Either String Ast -> Either String (Ast, [Env])
