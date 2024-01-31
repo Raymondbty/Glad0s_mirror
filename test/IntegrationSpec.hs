@@ -19,77 +19,42 @@ defaultFilePath envVar = do
   let filename = envVar
   return $ currentDir </> "test" </> "examples" </> filename
 
-callTestSpec :: Spec
-callTestSpec = do
+callTestOne :: Spec
+callTestOne = do
   describe "call" $ do
-    it "correctly evaluates the example from examples/call.scm" $ do
+    it "correctly evaluates the example from examples/test_one.scm" $ do
       exePath <- makeAbsolute "./glados"
-      inputPath <- defaultFilePath "call.scm"
+      inputPath <- defaultFilePath "test_one.scm"
       inputContent <- readFile inputPath
       (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
       exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "5\n"
+      output `shouldBe` "x: -5 !\ntest\n\n4\n"
 
-errorTestSpec :: Spec
-errorTestSpec = do
-  describe "error" $ do
-    it "correctly evaluates the example from examples/error.scm" $ do
+callTestTwo :: Spec
+callTestTwo = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_two.scm" $ do
       exePath <- makeAbsolute "./glados"
-      inputPath <- defaultFilePath "error.scm"
+      inputPath <- defaultFilePath "test_two.scm"
       inputContent <- readFile inputPath
       (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
       exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "Exception: variable foo not found (* \"foo\" 2)\n"
+      output `shouldBe` "Exception: stack overflow: test2();\n"
 
-fooTestSpec :: Spec
-fooTestSpec = do
-  describe "foo" $ do
-    it "correctly evaluates the example from examples/foo.scm" $ do
+callTestThree :: Spec
+callTestThree = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_three.scm" $ do
       exePath <- makeAbsolute "./glados"
-      inputPath <- defaultFilePath "foo.scm"
+      inputPath <- defaultFilePath "test_three.scm"
       inputContent <- readFile inputPath
       (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
       exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "42\n"
-
-testOne :: Spec
-testOne = do
-  describe "firsttest" $ do
-    it "correctly evaluates the example from examples/test1.scm" $ do
-      exePath <- makeAbsolute "./glados"
-      inputPath <- defaultFilePath "test1.scm"
-      inputContent <- readFile inputPath
-      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
-      exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "12\n"
-
-ifone :: Spec
-ifone = do
-  describe "if2" $ do
-    it "correctly evaluates the example from examples/if1.scm" $ do
-      exePath <- makeAbsolute "./glados"
-      inputPath <- defaultFilePath "if1.scm"
-      inputContent <- readFile inputPath
-      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
-      exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "1\n"
-
-iftwo :: Spec
-iftwo = do
-  describe "if2" $ do
-    it "correctly evaluates the example from examples/if2.scm" $ do
-      exePath <- makeAbsolute "./glados"
-      inputPath <- defaultFilePath "if2.scm"
-      inputContent <- readFile inputPath
-      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
-      exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "2\n"
+      output `shouldBe` "3\n260\n34\n530\n3\n"
 
 spec :: Spec
 spec = do
-    callTestSpec
-    errorTestSpec
-    fooTestSpec
-    testOne
-    ifone
-    iftwo
+    callTestOne
+    callTestTwo
+    callTestThree
+
