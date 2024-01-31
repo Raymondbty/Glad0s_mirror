@@ -65,6 +65,11 @@ evalFunction i (x:xs) env = case evalAST i x env of
     Right ((Print ast), env1) -> case evalFunction i xs env1 of
         Left err -> Left err
         Right (asts, env2) -> Right ((Print ast) : asts, env2)
+    Right ((FuncRes asts), env1) -> case evalFunction i asts env1 of
+        Left err -> Left err
+        Right (asts1, env2) -> case evalFunction i xs env2 of
+            Left err -> Left err
+            Right (asts2, env3) -> Right (asts1 ++ asts2, env3)
     Right (_, env1) -> case evalFunction i xs env1 of
         Left err -> Left err
         Right (asts, env2) -> Right (asts, env2)
