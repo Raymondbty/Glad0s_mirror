@@ -18,6 +18,7 @@ data Ast = Define String Ast
          | BoolLiteral Bool
          | Lambda [String] Ast
          | Print [Ast]
+         | If [String] [Ast]
          | FuncArgs [String] [Ast]
          | FuncRes [Ast]
          deriving Show
