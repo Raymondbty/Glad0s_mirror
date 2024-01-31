@@ -5,7 +5,7 @@
 -- Instances.hs
 -}
 
-module Instances (SExpr, Ast) where
+module Instances (Ast) where
 
 import Types
 import Glados
@@ -19,12 +19,6 @@ instance Eq Operator where
     EQUAL == EQUAL = True
     LESS == LESS = True
     _ == _ = False
-
-instance Eq SExpr where
-  (SList a) == (SList b) = a == b
-  (SSymbol a) == (SSymbol b) = a == b
-  (SInt a) == (SInt b) = a == b
-  _ == _ = False
 
 instance Eq Ast where
   IntLiteral a == IntLiteral b = a == b
@@ -40,7 +34,7 @@ instance Eq Instruction where
     (Push v1) == (Push v2) = v1 == v2
     (CallOp op1) == (CallOp op2) = op1 == op2
     Ret == Ret = True
-    (JUMPIFFALSE i1) == (JUMPIFFALSE i2) = i1 == i2
-    (JUMP i1) == (JUMP i2) = i1 == i2
+    (JumpIfFalse i1) == (JumpIfFalse i2) = i1 == i2
+    (Jump i1) == (Jump i2) = i1 == i2
     _ == _ = False
 
