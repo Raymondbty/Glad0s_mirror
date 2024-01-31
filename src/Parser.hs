@@ -5,7 +5,8 @@
 -- Parser.hs
 -}
 
-module Parser (parse) where
+module Parser (parse, parseBool, parseInt, parseSymbol, parseStringContent,
+parseString, parseFuncContent) where
 
 import Debug.Trace
 import Control.Applicative
@@ -41,7 +42,7 @@ parseString :: Parser Ast
 parseString = parseChar '"' *> parseStringContent <* parseChar '"'
 
 parseFuncContent :: String -> [String] -> Parser Ast
-parseFuncContent name args = Parser $ \str -> trace ("test" ++ show str) $
+parseFuncContent name args = Parser $ \str ->
     case runParser parse str of
         Just (asts, rest) -> Just (Func name args asts, rest)
         Nothing -> Nothing

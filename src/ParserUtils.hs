@@ -5,7 +5,9 @@
 -- ParserUtils.hs
 -}
 
-module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep, parseSpaces, parseList, parseListIf, parseWord) where
+module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep,
+parseSpaces, parseList, parseListIf, parseWord, isInList, parseAnyChar,
+parseMany, parseSome, parseNumberVar, parseListArgs, parseListArgsIf) where
 
 import Control.Applicative
 import Types
