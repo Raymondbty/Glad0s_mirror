@@ -7,6 +7,7 @@
 
 module Parser (parse) where
 
+import Debug.Trace
 import Control.Applicative
 import ParserUtils
 import Types
@@ -40,7 +41,7 @@ parseString :: Parser Ast
 parseString = parseChar '"' *> parseStringContent <* parseChar '"'
 
 parseFuncContent :: String -> [String] -> Parser Ast
-parseFuncContent name args = Parser $ \str ->
+parseFuncContent name args = Parser $ \str -> trace ("test" ++ show str) $
     case runParser parse str of
         Just (asts, rest) -> Just (Func name args asts, rest)
         Nothing -> Nothing
@@ -52,6 +53,19 @@ parseFunc =
         parseSpaces *> parseChar '(' *> parseSpaces *> parseList >>= \var ->
             parseChar ')' *> parseSpaces *> parseChar '{' *> parseFuncContent
             name var <* parseChar '}'
+
+parseIfContent :: [String] -> Parser Ast
+parseIfContent args = Parser $ \str -> trace (show str) $
+    case runParser parse str of
+        Just (asts, rest) -> Just (If args asts, rest)
+        Nothing -> Nothing
+
+parseIf :: Parser Ast
+parseIf =
+    parseWord "if " *>
+    parseSpaces *> parseChar '(' *> parseSpaces *> parseListIf >>= \var -> trace (show var) $
+    parseChar ')' *> parseSpaces *> parseChar '{' *> parseIfContent
+    var <* parseChar '}'
 
 parseFuncCallContent :: String -> Parser Ast
 parseFuncCallContent name = Parser $ \str ->
@@ -82,12 +96,14 @@ parseOr = parseInt <* parseSep
       <|> parseSymbol <* parseSep
       <|> parseString <* parseSep
       <|> parseFunc
+      <|> parseIf
       <|> parseFuncCall <* parseSep
       <|> parseDefine <* parseSep
 
 parseCallOr :: Parser Ast
 parseCallOr = parseSpaces *> parseInt <* parseCallSep
       <|> parseSpaces *> parseBool <* parseCallSep
+      <|> parseSpaces *> parseIf <* parseCallSep
       <|> parseSpaces *> parseFuncCall <* parseCallSep
       <|> parseSpaces *> parseSymbol <* parseCallSep
       <|> parseSpaces *> parseString <* parseCallSep
