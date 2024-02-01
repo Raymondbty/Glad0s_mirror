@@ -52,7 +52,7 @@ evalASTWhileCond i (While cond branch) env =
             case evalFunction i branch env of
                 Right (asts, env1) ->
                     case evalASTWhileCond i (While cond branch) env1 of
-                        Right (asts1, _) -> Right (asts ++ asts1, env)
+                        Right (asts1, env2) -> Right (asts ++ asts1, env2)
                         Left err -> Left err
                 Left err -> Left err
 evalASTWhileCond _ _ _ = Left "require two arguments"
@@ -125,7 +125,7 @@ evalAST j ast env = let i = j + 1 in
                     Right (asts1, _) -> Right (FuncRes asts1, env)
                 (IfRes asts) -> case evalFunction i asts env of
                     Left err -> Left err
-                    Right (asts1, _) -> Right (IfRes asts1, env)
+                    Right (asts1, env1) -> Right (IfRes asts1, env1)
                 (Call "add" _) -> plus $ evalASTCall i ast env
                 (Call "mul" _) -> mul $ evalASTCall i ast env
                 (Call "div" _) -> myDiv $ evalASTCall i ast env
@@ -141,7 +141,7 @@ evalAST j ast env = let i = j + 1 in
                 (If _ _ _) -> evalASTIfCond i ast env
                 (While _ _) -> case evalASTWhileCond i ast env of
                                     Left err -> Left err
-                                    Right (asts1, _) -> Right (FuncRes asts1, env)
+                                    Right (asts1, env1) -> Right (FuncRes asts1, env1)
                 (Call "print" asts) -> case evalPrint i asts env of
                     Left err -> Left err
                     Right asts1 -> Right (Print asts1, env)
