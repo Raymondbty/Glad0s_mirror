@@ -7,7 +7,6 @@
 
 module Glados (start) where
 
-import Debug.Trace
 import CommandLines
 import Compiler
 import Disassembler
@@ -55,9 +54,7 @@ start = getArgs >>= \args ->
 
 startInterpreter :: Maybe String -> IO ()
 startInterpreter file = getInput >>= \input ->
-    let var = runParser parse input in
-        trace (show var) $
-    case var of
+    case runParser parse input of
         Just (asts, []) ->
             case file of
                 Just path -> compile asts path
