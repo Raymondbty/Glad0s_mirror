@@ -20,6 +20,7 @@ data Ast = Define String Ast
          | Print [Ast]
          | If Ast [Ast] [Ast]
          | IfRes [Ast]
+         | While Ast [Ast]
          | FuncArgs [String] [Ast]
          | FuncRes [Ast]
          deriving Show

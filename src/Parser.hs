@@ -8,7 +8,6 @@
 module Parser (parse, parseBool, parseInt, parseSymbol, parseStringContent,
 parseString, parseFuncContent) where
 
-import Debug.Trace
 import Control.Applicative
 import ParserUtils
 import Types
@@ -74,6 +73,13 @@ parseIf =
     parseChar ')' *> parseSpaces *> parseChar '{' *> parseIfContent
     ast <* parseChar '}'
 
+parseWhile :: Parser Ast
+parseWhile =
+    parseWord "while " *>
+    parseSpaces *> parseChar '(' *> parseSpaces *> parseCallOr >>= \ast ->
+    parseChar ')' *> parseSpaces *> parseChar '{' *> parseWhileContent
+    ast <* parseChar '}'
+
 parseFuncCallContent :: String -> Parser Ast
 parseFuncCallContent name = Parser $ \str ->
     case runParser parseListCall str of
@@ -104,6 +110,7 @@ parseOr = parseInt <* parseSep
       <|> parseString <* parseSep
       <|> parseFunc
       <|> parseIf
+      <|> parseWhile
       <|> parseFuncCall <* parseSep
       <|> parseDefine <* parseSep
 
