@@ -52,8 +52,20 @@ callTestThree = do
       exitCode `shouldBe` ExitSuccess
       output `shouldBe` "3\n260\n34\n530\n3\n"
 
+callTestFour :: Spec
+callTestFour = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_four.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test_four.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "3\n3\n4\n"
+
 spec :: Spec
 spec = do
     callTestOne
     callTestTwo
     callTestThree
+    callTestFour
