@@ -58,13 +58,5 @@ startInterpreter file = getInput >>= \input ->
         Just (asts, []) ->
             case file of
                 Just path -> compile asts path
-                Nothing -> run asts initialEnv
+                Nothing -> run asts []
         _ -> putStrLn $ "Parser error"
-
-initialEnv :: [Env]
-initialEnv =
-    [ Var "eq?" (Lambda ["x", "y"] (Call "?" [(Symbol "x"), (Symbol "y")])),
-      Var "div" (Lambda ["x", "y"] (Call "/" [(Symbol "x"), (Symbol "y")])),
-      Var "mod" (Lambda ["x", "y"] (Call "%" [(Symbol "x"), (Symbol "y")])),
-      Var "fact" (Lambda ["n"] (Call "!" [(Symbol "n")]))
-    ]

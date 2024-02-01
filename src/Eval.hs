@@ -39,13 +39,31 @@ evalASTIfCond i (If cond trueBranch falseBranch) env =
                 Left err -> Left err
 evalASTIfCond _ _ _ = Left "require three arguments"
 
-getASTInEnv :: String -> [Env] -> Maybe Ast
+evalASTWhileCond :: Int -> Ast -> [Env] -> Either String ([Ast], [Env])
+evalASTWhileCond i (While cond branch) env =
+    case evalAST i cond env of
+        Right (BoolLiteral True, _) -> evalWhile
+        Right (BoolLiteral False, _) -> Right ([], env)
+        Right (IntLiteral 0, _) -> Right ([], env)
+        Right (IntLiteral _, _) -> evalWhile
+        _ -> Left "while condition not a boolean"
+    where
+        evalWhile =
+            case evalFunction i branch env of
+                Right (asts, env1) ->
+                    case evalASTWhileCond i (While cond branch) env1 of
+                        Right (asts1, _) -> Right (asts ++ asts1, env)
+                        Left err -> Left err
+                Left err -> Left err
+evalASTWhileCond _ _ _ = Left "require two arguments"
+
+getASTInEnv :: String -> [Env] -> Maybe (Ast, [Env])
 getASTInEnv _ [] = Nothing
 getASTInEnv str ((Var key ast):xs) = if str == key
-                                     then Just ast
+                                     then Just (ast, xs)
                                      else getASTInEnv str xs
 getASTInEnv str ((FuncVar key args asts):xs) = if str == key
-                                     then Just $ FuncArgs args asts
+                                     then Just (FuncArgs args asts, xs)
                                      else getASTInEnv str xs
 
 evalFuncCallArgs :: [String] -> [Ast] -> Maybe [Env]
@@ -60,7 +78,7 @@ evalFuncCallArgs (x:xs) (a:as) = case evalFuncCallArgs xs as of
 getFuncASTInEnv :: Int -> String -> [Ast] -> [Env] -> Either String (Ast, [Env])
 getFuncASTInEnv i func args env =
     case getASTInEnv func env of
-        Just (FuncArgs astsArgs asts) -> case evalFuncCallArgs astsArgs args of
+        Just (FuncArgs astsArgs asts, _) -> case evalFuncCallArgs astsArgs args of
             Just env1 -> evalAST i (FuncRes asts) (env1 ++ env)
             Nothing -> Left $ "function " ++ func ++ " wrong arguments"
         _ -> Left $ "function " ++ func ++ " not found"
@@ -121,11 +139,14 @@ evalAST j ast env = let i = j + 1 in
                 (Call "greater" _) -> greater $ evalASTCall i ast env
                 (Call "fact" _) -> fact $ evalASTCall i ast env
                 (If _ _ _) -> evalASTIfCond i ast env
+                (While _ _) -> case evalASTWhileCond i ast env of
+                                    Left err -> Left err
+                                    Right (asts1, _) -> Right (FuncRes asts1, env)
                 (Call "print" asts) -> case evalPrint i asts env of
                     Left err -> Left err
                     Right asts1 -> Right (Print asts1, env)
                 (Call func args) -> getFuncASTInEnv i func args env
                 (Symbol str) -> case getASTInEnv str env of
-                    Just ast1 -> evalAST i ast1 env
+                    Just (ast1, env1) -> evalAST i ast1 env1
                     Nothing -> Left $ "variable " ++ str ++ " not found"
                 _ -> Right (ast, env)
