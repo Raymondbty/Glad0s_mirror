@@ -61,12 +61,25 @@ parseIfContent ast = Parser $ \str ->
         Just (asts, rest) -> Just (If ast asts [], rest)
         Nothing -> Nothing
 
+parseIfElseContent :: Ast -> [Ast] -> [Ast] -> Parser Ast
+parseIfElseContent ast trueBranch falseBranch = Parser $ \str ->
+    Just (If ast trueBranch falseBranch, str)
+
 parseIf :: Parser Ast
 parseIf =
-    parseWord "if " *>
+    parseWord "if" *>
     parseSpaces *> parseChar '(' *> parseSpaces *> parseCallOr >>= \ast ->
     parseChar ')' *> parseSpaces *> parseChar '{' *> parseIfContent
     ast <* parseChar '}'
+
+parseIfElse :: Parser Ast
+parseIfElse =
+    parseWord "if" *>
+    parseSpaces *> parseChar '(' *> parseSpaces *> parseCallOr >>= \ast ->
+    parseChar ')' *> parseSpaces *> parseChar '{' *> parse >>= \trueBranch ->
+        parseChar '}' *> parseSpaces *> parseWord "else" *> parseSpaces *> parseChar '{'
+        *> parse >>= \falseBranch ->
+            parseIfElseContent ast trueBranch falseBranch <* parseChar '}'
 
 parseFuncCallContent :: String -> Parser Ast
 parseFuncCallContent name = Parser $ \str ->
@@ -97,6 +110,7 @@ parseOr = parseInt <* parseSep
       <|> parseSymbol <* parseSep
       <|> parseString <* parseSep
       <|> parseFunc
+      <|> parseIfElse
       <|> parseIf
       <|> parseFuncCall <* parseSep
       <|> parseDefine <* parseSep
