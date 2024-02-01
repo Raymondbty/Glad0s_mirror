@@ -63,9 +63,33 @@ callTestFour = do
       exitCode `shouldBe` ExitSuccess
       output `shouldBe` "3\n3\n4\n"
 
+callTestFive :: Spec
+callTestFive = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_five.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test_five.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "2\n4\n"
+
+callTestFact :: Spec
+callTestFact = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_factorial.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test_factorial.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "3628800\n"
+
 spec :: Spec
 spec = do
     callTestOne
     callTestTwo
     callTestThree
     callTestFour
+    callTestFive
+    callTestFact
