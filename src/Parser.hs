@@ -55,18 +55,18 @@ parseFunc =
             parseChar ')' *> parseSpaces *> parseChar '{' *> parseFuncContent
             name var <* parseChar '}'
 
-parseIfContent :: [String] -> Parser Ast
-parseIfContent args = Parser $ \str -> trace (show str) $
+parseIfContent :: Ast -> Parser Ast
+parseIfContent ast = Parser $ \str ->
     case runParser parse str of
-        Just (asts, rest) -> Just (If args asts, rest)
+        Just (asts, rest) -> Just (If ast asts [], rest)
         Nothing -> Nothing
 
 parseIf :: Parser Ast
 parseIf =
     parseWord "if " *>
-    parseSpaces *> parseChar '(' *> parseSpaces *> parseListIf >>= \var -> trace (show var) $
+    parseSpaces *> parseChar '(' *> parseSpaces *> parseCallOr >>= \ast ->
     parseChar ')' *> parseSpaces *> parseChar '{' *> parseIfContent
-    var <* parseChar '}'
+    ast <* parseChar '}'
 
 parseFuncCallContent :: String -> Parser Ast
 parseFuncCallContent name = Parser $ \str ->
@@ -104,7 +104,6 @@ parseOr = parseInt <* parseSep
 parseCallOr :: Parser Ast
 parseCallOr = parseSpaces *> parseInt <* parseCallSep
       <|> parseSpaces *> parseBool <* parseCallSep
-      <|> parseSpaces *> parseIf <* parseCallSep
       <|> parseSpaces *> parseFuncCall <* parseCallSep
       <|> parseSpaces *> parseSymbol <* parseCallSep
       <|> parseSpaces *> parseString <* parseCallSep

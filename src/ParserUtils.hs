@@ -6,8 +6,8 @@
 -}
 
 module ParserUtils (parseChar, parseNumber, parseVar, parseStr, parseSep,
-parseSpaces, parseList, parseListIf, parseWord, isInList, parseAnyChar,
-parseMany, parseSome, parseNumberVar, parseListArgs, parseListArgsIf) where
+parseSpaces, parseList, parseWord, isInList, parseAnyChar,
+parseMany, parseSome, parseNumberVar, parseListArgs) where
 
 import Control.Applicative
 import Types
@@ -102,26 +102,6 @@ parseListArgs = Parser $ \str ->
                 Just (var1, rest1) -> Just (var : var1, rest1)
                 Nothing -> Nothing
 
-parseListArgsIf :: Parser [String]
-parseListArgsIf = Parser $ \str ->
-    case str of
-        [] -> Nothing
-        (' ':xs) -> runParser parseListArgsIf xs
-        ('\t':xs) -> runParser parseListArgsIf xs
-        ('\r':xs) -> runParser parseListArgsIf xs
-        ('\n':xs) -> runParser parseListArgsIf xs
-        (')':xs) -> Just ([], ')' : xs)
-        _ -> runParser parseNumberVar str >>= \(var, str1) ->
-            case runParser parseSpaces str1 of
-                Just (_, (',':xs)) -> fct var xs
-                Just (_, (')':xs)) -> fct var (')' : xs)
-                _ -> Nothing
-    where
-        fct var rest =
-            case runParser parseListArgsIf rest of
-                Just (var1, rest1) -> Just (var : var1, rest1)
-                Nothing -> Nothing
-
 parseList :: Parser [String]
 parseList = Parser $ \str ->
     case str of
@@ -129,16 +109,6 @@ parseList = Parser $ \str ->
         (')':xs) -> Just ([], ')' : xs)
         _ ->
             case runParser parseListArgs str of
-                Just (args, rest) -> Just (args, rest)
-                Nothing -> Nothing
-
-parseListIf :: Parser [String]
-parseListIf = Parser $ \str ->
-    case str of
-        [] -> Nothing
-        (')':xs) -> Just ([], ')' : xs)
-        _ ->
-            case runParser parseListArgsIf str of
                 Just (args, rest) -> Just (args, rest)
                 Nothing -> Nothing
 
