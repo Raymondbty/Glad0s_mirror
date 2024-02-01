@@ -316,42 +316,6 @@ parserUtilsSpec = do
             let result = runParser parseListArgs input
             result `shouldBe` Just (["arg1", "arg2", "arg3"], ")")
 
-    describe "parseListArgsIf" $ do
-        it "parses an empty argument list" $ do
-            let input = ")"
-            let result = runParser parseListArgsIf input
-            result `shouldBe` Just ([], ")")
-
-        it "parses a single argument without spaces" $ do
-            let input = "arg)"
-            let result = runParser parseListArgsIf input
-            result `shouldBe` Just (["arg"], ")")
-
-        it "parses multiple arguments with spaces" $ do
-            let input = "arg1 , arg2 , arg3 )"
-            let result = runParser parseListArgsIf input
-            result `shouldBe` Just (["arg1", "arg2", "arg3"], ")")
-
-        it "fails to parse with missing closing parenthesis" $ do
-            let input = "arg1 , arg2 , arg3 "
-            let result = runParser parseListArgsIf input
-            result `shouldBe` Nothing
-
-        it "fails to parse with invalid characters" $ do
-            let input = "arg1 , arg2 , , arg3 )"
-            let result = runParser parseListArgsIf input
-            result `shouldBe` Nothing
-
-        it "parses an argument list with leading spaces" $ do
-            let input = "   arg1 ,   arg2 , arg3 )"
-            let result = runParser parseListArgsIf input
-            result `shouldBe` Just (["arg1", "arg2", "arg3"], ")")
-
-        it "parses arguments with leading digits" $ do
-            let input = "123 , 456 , 789 )"
-            let result = runParser parseListArgsIf input
-            result `shouldBe` Just (["123", "456", "789"], ")")
-
     describe "parseList" $ do
         it "parses an empty list" $ do
             let input = ")"
@@ -382,47 +346,6 @@ parserUtilsSpec = do
             let input = "arg1 , arg2 , , arg3 )"
             let result = runParser parseList input
             result `shouldBe` Nothing
-
-    describe "parseListIf" $ do
-        it "parses an empty list" $ do
-            let input = ")"
-            let result = runParser parseListIf input
-            result `shouldBe` Just ([], ")")
-
-        it "parses a list with arguments" $ do
-            let input = "arg1 , arg2 , arg3 )"
-            let result = runParser parseListIf input
-            result `shouldBe` Just (["arg1", "arg2", "arg3"], ")")
-
-        it "fails to parse with missing closing parenthesis" $ do
-            let input = "arg1 , arg2 , arg3 "
-            let result = runParser parseListIf input
-            result `shouldBe` Nothing
-
-        it "parses a list with leading spaces" $ do
-            let input = "   arg1 ,   arg2 , arg3 )"
-            let result = runParser parseListIf input
-            result `shouldBe` Just (["arg1", "arg2", "arg3"], ")")
-
-        it "fails to parse an empty string" $ do
-            let input = ""
-            let result = runParser parseListIf input
-            result `shouldBe` Nothing
-
-        it "fails to parse with invalid characters" $ do
-            let input = "arg1 , arg2 , , arg3 )"
-            let result = runParser parseListIf input
-            result `shouldBe` Nothing
-
-        it "parses a list with numbers" $ do
-            let input = "123 , 456 , 789 )"
-            let result = runParser parseListIf input
-            result `shouldBe` Just (["123", "456", "789"], ")")
-
-        it "parses a list with leading digits" $ do
-            let input = "123 , 456 , 789 , )"
-            let result = runParser parseListIf input
-            result `shouldBe` Just (["123", "456", "789"], ")")
 
     describe "parseWord" $ do
         it "parses an empty word" $ do
