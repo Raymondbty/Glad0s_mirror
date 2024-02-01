@@ -57,4 +57,3 @@ spec = do
     callTestOne
     callTestTwo
     callTestThree
-

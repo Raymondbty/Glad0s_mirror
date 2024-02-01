@@ -37,4 +37,3 @@ instance Eq Instruction where
     (JumpIfFalse i1) == (JumpIfFalse i2) = i1 == i2
     (Jump i1) == (Jump i2) = i1 == i2
     _ == _ = False
-
