@@ -18,6 +18,7 @@ prettyPrint :: Ast -> String
 prettyPrint (IntLiteral i) = show i
 prettyPrint (StringLiteral str) = show str
 prettyPrint (Call symbol list) = symbol ++ "(" ++ (prettyPrintList list) ++ ");"
+prettyPrint (If cond _ _) = "if (" ++ (prettyPrint cond) ++ ")"
 prettyPrint (BoolLiteral b) = show b
 prettyPrint (Symbol str) = str
 prettyPrint (Lambda _ _) = "#<procedure>"

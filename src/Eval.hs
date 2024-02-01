@@ -25,11 +25,18 @@ evalASTCall i (Call func args) env = case evalASTCallArgs i args env of
 evalASTCall _ ast _ = Right ast
 
 evalASTIfCond :: Int -> Ast -> [Env] -> Either String (Ast, [Env])
-evalASTIfCond i (Call _ [cond, trueBranch, falseBranch]) env =
+evalASTIfCond i (If cond trueBranch falseBranch) env =
     case evalAST i cond env of
-        Right (BoolLiteral True, _) -> evalAST i trueBranch env
-        Right (BoolLiteral False, _) -> evalAST i falseBranch env
-        _ -> Left "require three arguments"
+        Right (BoolLiteral True, _) -> evalIf trueBranch
+        Right (BoolLiteral False, _) -> evalIf falseBranch
+        Right (IntLiteral 0, _) -> evalIf falseBranch
+        Right (IntLiteral _, _) -> evalIf trueBranch
+        _ -> Left "if condition not a boolean"
+    where
+        evalIf branch =
+            case evalFunction i branch env of
+                Right (asts, env1) -> evalAST i (IfRes asts) (env1 ++ env)
+                Left err -> Left err
 evalASTIfCond _ _ _ = Left "require three arguments"
 
 getASTInEnv :: String -> [Env] -> Maybe Ast
@@ -104,7 +111,7 @@ evalAST j ast env = let i = j + 1 in
                 (Call "geq" _) -> myGeq $ evalASTCall i ast env
                 (Call "lower" _) -> lower $ evalASTCall i ast env
                 (Call "greater" _) -> greater $ evalASTCall i ast env
-                -- (Call "if" _) -> evalASTIfCond i ast env
+                (If _ _ _) -> evalASTIfCond i ast env
                 (Call "print" asts) -> case evalPrint i asts env of
                     Left err -> Left err
                     Right asts1 -> Right (Print asts1, env)
