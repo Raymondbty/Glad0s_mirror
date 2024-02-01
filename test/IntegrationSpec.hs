@@ -85,6 +85,17 @@ callTestFact = do
       exitCode `shouldBe` ExitSuccess
       output `shouldBe` "3628800\n"
 
+callTestSumOfInt :: Spec
+callTestSumOfInt = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_sum_of_integers.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test_sum_of_integers.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "15\n"
+
 spec :: Spec
 spec = do
     callTestOne
@@ -93,3 +104,4 @@ spec = do
     callTestFour
     callTestFive
     callTestFact
+    callTestSumOfInt
