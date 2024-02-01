@@ -55,6 +55,12 @@ parseFunc =
             parseChar ')' *> parseSpaces *> parseChar '{' *> parseFuncContent
             name var <* parseChar '}'
 
+parseWhileContent :: Ast -> Parser Ast
+parseWhileContent ast = Parser $ \str ->
+    case runParser parse str of
+        Just (asts, rest) -> Just (While ast asts, rest)
+        Nothing -> Nothing
+
 parseIfContent :: Ast -> Parser Ast
 parseIfContent ast = Parser $ \str ->
     case runParser parse str of
