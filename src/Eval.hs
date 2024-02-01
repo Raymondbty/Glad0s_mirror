@@ -77,6 +77,11 @@ evalFunction i (x:xs) env = case evalAST i x env of
         Right (asts1, env2) -> case evalFunction i xs env2 of
             Left err -> Left err
             Right (asts2, env3) -> Right (asts1 ++ asts2, env3)
+    Right ((IfRes asts), env1) -> case evalFunction i asts env1 of
+        Left err -> Left err
+        Right (asts1, env2) -> case evalFunction i xs env2 of
+            Left err -> Left err
+            Right (asts2, env3) -> Right (asts1 ++ asts2, env3)
     Right (_, env1) -> case evalFunction i xs env1 of
         Left err -> Left err
         Right (asts, env2) -> Right (asts, env2)
@@ -100,6 +105,9 @@ evalAST j ast env = let i = j + 1 in
                 (FuncRes asts) -> case evalFunction i asts env of
                     Left err -> Left err
                     Right (asts1, _) -> Right (FuncRes asts1, env)
+                (IfRes asts) -> case evalFunction i asts env of
+                    Left err -> Left err
+                    Right (asts1, _) -> Right (IfRes asts1, env)
                 (Call "add" _) -> plus $ evalASTCall i ast env
                 (Call "mul" _) -> mul $ evalASTCall i ast env
                 (Call "div" _) -> myDiv $ evalASTCall i ast env
