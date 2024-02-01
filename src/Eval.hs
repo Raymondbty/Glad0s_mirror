@@ -119,6 +119,7 @@ evalAST j ast env = let i = j + 1 in
                 (Call "geq" _) -> myGeq $ evalASTCall i ast env
                 (Call "lower" _) -> lower $ evalASTCall i ast env
                 (Call "greater" _) -> greater $ evalASTCall i ast env
+                (Call "fact" _) -> fact $ evalASTCall i ast env
                 (If _ _ _) -> evalASTIfCond i ast env
                 (Call "print" asts) -> case evalPrint i asts env of
                     Left err -> Left err

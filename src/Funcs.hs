@@ -19,13 +19,13 @@ factorial n | n < 0 = Left "n must be > or = to 0"
                         Right i -> Right $ n * i
             | otherwise = Right 1
 
-fact :: Either String Ast -> Either String Ast
+fact :: Either String Ast -> Either String (Ast, [Env])
 fact (Left err) = Left err
 fact (Right ast) = case ast of
                 (Call _ [IntLiteral n]) ->
                     case factorial n of
                         Left err -> Left err
-                        Right i -> Right $ IntLiteral i
+                        Right i -> Right $ (IntLiteral i, [])
                 _ -> Left $ "require one argument"
 
 myLeq :: Either String Ast -> Either String (Ast, [Env])

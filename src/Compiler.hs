@@ -21,30 +21,26 @@ calcJump (_:_:_:_:_:xs) = 1 + (calcJump xs)
 calcJump _ = 0
 
 convAst :: Ast -> [Word8]
-convAst (Call "+" (ast1:ast2:_)) =
+convAst (Call "add" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x00]
-convAst (Call "-" (ast1:ast2:_)) =
+convAst (Call "sub" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x01]
-convAst (Call "*" (ast1:ast2:_)) =
+convAst (Call "mul" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x02]
-convAst (Call "/" (ast1:ast2:_)) =
-  (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x03]
 convAst (Call "div" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x03]
-convAst (Call "%" (ast1:ast2:_)) =
-  (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x04]
 convAst (Call "mod" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x04]
-convAst (Call "?" (ast1:ast2:_)) =
+convAst (Call "equal" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x05]
-convAst (Call "<" (ast1:ast2:_)) =
+convAst (Call "lower" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x06]
-convAst (Call "!" (ast:_)) =
+convAst (Call "fact" (ast:_)) =
   (loopAst [ast]) ++ [0x01, 0x07]
-convAst (Call "if" (ast1:ast2:ast3:_)) =
+convAst (If ast1 ast2 ast3) =
   let cond = loopAst [ast1]
-      trueCond = loopAst [ast2] ++ [0x04] ++ (intToBytes $ calcJump falseCond)
-      falseCond = loopAst [ast3] in
+      trueCond = loopAst ast2 ++ [0x04] ++ (intToBytes $ calcJump falseCond)
+      falseCond = loopAst ast3 in
   cond ++ [0x03] ++ (intToBytes $ calcJump trueCond) ++ trueCond ++ falseCond
 convAst (IntLiteral i) = 0x00 : (intToBytes i)
 convAst (BoolLiteral True) = 0x00 : (intToBytes 1)
