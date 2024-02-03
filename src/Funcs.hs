@@ -5,111 +5,64 @@
 -- Funcs.hs
 -}
 
-module Funcs (factorial, fact, equal, lower,
-plus, minus, mul, myDiv, myMod, greater, myLeq, myGeq,
-notequal) where
+module Funcs (myLeq
+            , myGeq
+            , equal
+            , notequal
+            , lower
+            , greater
+            , add
+            , sub
+            , mul
+            , myDiv
+            , myMod) where
 
-import Print
 import Types
 
-factorial :: Int -> Either String Int
-factorial n | n < 0 = Left "n must be > or = to 0"
-            | n > 1 = case factorial $ n - 1 of
-                        Left err -> Left err
-                        Right i -> Right $ n * i
-            | otherwise = Right 1
+myLeq :: [Ast] -> Either String Ast
+myLeq [IntLiteral i1, IntLiteral i2] = Right $ BoolLiteral $ i1 <= i2
+myLeq _ = Left $ "leq: need two integers"
 
-fact :: Either String Ast -> Either String (Ast, [Env])
-fact (Left err) = Left err
-fact (Right ast) = case ast of
-                (Call _ [IntLiteral n]) ->
-                    case factorial n of
-                        Left err -> Left err
-                        Right i -> Right $ (IntLiteral i, [])
-                _ -> Left $ "require one argument"
+myGeq :: [Ast] -> Either String Ast
+myGeq [IntLiteral i1, IntLiteral i2] = Right $ BoolLiteral $ i1 >= i2
+myGeq _ = Left $ "geq: need two integers"
 
-myLeq :: Either String Ast -> Either String (Ast, [Env])
-myLeq (Left err) = Left err
-myLeq (Right ast) = case ast of
-    (Call _ [IntLiteral x, IntLiteral y]) ->
-        Right $ (BoolLiteral $ x <= y, [])
-    _ -> Left $ wrongArguments ast
+equal :: [Ast] -> Either String Ast
+equal [IntLiteral i1, IntLiteral i2] = Right $ BoolLiteral $ i1 == i2
+equal [StringLiteral s1, StringLiteral s2] = Right $ BoolLiteral $ s1 == s2
+equal _ = Left $ "equal: need two integers or two strings"
 
-myGeq :: Either String Ast -> Either String (Ast, [Env])
-myGeq (Left err) = Left err
-myGeq (Right ast) = case ast of
-    (Call _ [IntLiteral x, IntLiteral y]) ->
-        Right $ (BoolLiteral $ x >= y, [])
-    _ -> Left $ wrongArguments ast
+notequal :: [Ast] -> Either String Ast
+notequal [IntLiteral i1, IntLiteral i2] = Right $ BoolLiteral $ i1 /= i2
+notequal [StringLiteral s1, StringLiteral s2] = Right $ BoolLiteral $ s1 /= s2
+notequal _ = Left $ "ne: need two integers or two strings"
 
-equal :: Either String Ast -> Either String (Ast, [Env])
-equal (Left err) = Left err
-equal (Right ast) = case ast of
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (BoolLiteral $ x == y, [])
-                (Call _ [StringLiteral str1, StringLiteral str2]) ->
-                    Right $ (BoolLiteral $ str1 == str2, [])
-                _ -> Left $ wrongArguments ast
+lower :: [Ast] -> Either String Ast
+lower [IntLiteral i1, IntLiteral i2] = Right $ BoolLiteral $ i1 < i2
+lower _ = Left $ "lower: need two integers"
 
-notequal :: Either String Ast -> Either String (Ast, [Env])
-notequal (Left err) = Left err
-notequal (Right ast) = case ast of
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (BoolLiteral $ x /= y, [])
-                (Call _ [StringLiteral str1, StringLiteral str2]) ->
-                    Right $ (BoolLiteral $ str1 /= str2, [])
-                _ -> Left $ wrongArguments ast
+greater :: [Ast] -> Either String Ast
+greater [IntLiteral i1, IntLiteral i2] = Right $ BoolLiteral $ i1 > i2
+greater _ = Left $ "greater: need two integers"
 
+add :: [Ast] -> Either String Ast
+add [IntLiteral i1, IntLiteral i2] = Right $ IntLiteral $ i1 + i2
+add _ = Left $ "add: need two integers"
 
-lower :: Either String Ast -> Either String (Ast, [Env])
-lower (Left err) = Left err
-lower (Right ast) = case ast of
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (BoolLiteral $ x < y, [])
-                _ -> Left $ wrongArguments ast
+sub :: [Ast] -> Either String Ast
+sub [IntLiteral i1, IntLiteral i2] = Right $ IntLiteral $ i1 - i2
+sub _ = Left $ "sub: need two integers"
 
-greater :: Either String Ast -> Either String (Ast, [Env])
-greater (Left err) = Left err
-greater (Right ast) = case ast of
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (BoolLiteral $ x > y, [])
-                _ -> Left $ wrongArguments ast
+mul :: [Ast] -> Either String Ast
+mul [IntLiteral i1, IntLiteral i2] = Right $ IntLiteral $ i1 * i2
+mul _ = Left $ "mul: need two integers"
 
-plus :: Either String Ast -> Either String (Ast, [Env])
-plus (Left err) = Left err
-plus (Right ast) = case ast of
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right (IntLiteral $ x + y, [])
-                _ -> Left $ wrongArguments ast
+myDiv :: [Ast] -> Either String Ast
+myDiv [IntLiteral _, IntLiteral 0] = Right $ IntLiteral 0
+myDiv [IntLiteral i1, IntLiteral i2] = Right $ IntLiteral $ i1 `div` i2
+myDiv _ = Left $ "div: need two integers"
 
-minus :: Either String Ast -> Either String (Ast, [Env])
-minus (Left err) = Left err
-minus (Right ast) = case ast of
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (IntLiteral $ x - y, [])
-                _ -> Left $ wrongArguments ast
-
-mul :: Either String Ast -> Either String (Ast, [Env])
-mul (Left err) = Left err
-mul (Right ast) = case ast of
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (IntLiteral $ x * y, [])
-                _ -> Left $ wrongArguments ast
-
-myDiv :: Either String Ast -> Either String (Ast, [Env])
-myDiv (Left err) = Left err
-myDiv (Right ast) = case ast of
-                (Call _ [IntLiteral _, IntLiteral 0]) ->
-                    Right $ (IntLiteral 0, [])
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (IntLiteral $ x `div` y, [])
-                _ -> Left $ wrongArguments ast
-
-myMod :: Either String Ast -> Either String (Ast, [Env])
-myMod (Left err) = Left err
-myMod (Right ast) = case ast of
-                (Call _ [IntLiteral _, IntLiteral 0]) ->
-                    Right $ (IntLiteral 0, [])
-                (Call _ [IntLiteral x, IntLiteral y]) ->
-                    Right $ (IntLiteral $ x `mod` y, [])
-                _ -> Left $ wrongArguments ast
+myMod :: [Ast] -> Either String Ast
+myMod [IntLiteral _, IntLiteral 0] = Right $ IntLiteral 0
+myMod [IntLiteral i1, IntLiteral i2] = Right $ IntLiteral $ i1 `mod` i2
+myMod _ = Left $ "mod: need two integers"

@@ -32,7 +32,6 @@ readCall (0x03:xs) = continueReading "Push Div\nCall" xs
 readCall (0x04:xs) = continueReading "Push Mod\nCall" xs
 readCall (0x05:xs) = continueReading "Push Eq\nCall" xs
 readCall (0x06:xs) = continueReading "Push Less\nCall" xs
-readCall (0x07:xs) = continueReading "Push Fact\nCall" xs
 readCall _ = Nothing
 
 getAssembler :: [Word8] -> Maybe String

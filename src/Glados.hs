@@ -13,6 +13,7 @@ import Disassembler
 import Eval (evalASTS)
 import Parser (parse)
 import System.Environment
+import System.Exit
 import System.IO
 import Types
 import VM
@@ -43,5 +44,5 @@ startInterpreter file = getInput >>= \input ->
         Just (asts, []) ->
             case file of
                 Just path -> compile asts path
-                Nothing -> evalASTS asts [] >>= \_ -> return ()
-        _ -> putStrLn $ "Parser error"
+                Nothing -> evalASTS 1 asts [] >>= \_ -> return ()
+        _ -> putStrLn "Exception: Parser error" >> exitWith (ExitFailure 84)

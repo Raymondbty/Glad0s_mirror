@@ -5,177 +5,37 @@
 -- Ast.hs
 -}
 
-module Eval (evalASTIfCond, evalASTS) where
+module Eval (evalASTS) where
 
 import Funcs
 import Print
+import System.Exit
 import Types
 
-evalASTCallArgs :: Int -> [Ast] -> [Env] -> Either String [Ast]
-evalASTCallArgs _ [] _ = Right []
-evalASTCallArgs i (x:xs) env = case evalAST i x env of
-                                Left err -> Left err
-                                Right (ast, _) -> case evalASTCallArgs i xs env of
-                                    Left err -> Left err
-                                    Right asts -> Right (ast : asts)
-
-evalASTCall :: Int -> Ast -> [Env] -> Either String Ast
-evalASTCall i (Call func args) env = case evalASTCallArgs i args env of
-                                    Left err -> Left err
-                                    Right ast -> Right (Call func ast)
-evalASTCall _ ast _ = Right ast
-
-evalASTIfCond :: Int -> Ast -> [Env] -> Either String (Ast, [Env])
-evalASTIfCond i (If cond trueBranch falseBranch) env =
-    case evalAST i cond env of
-        Right (BoolLiteral True, _) -> evalIf trueBranch
-        Right (BoolLiteral False, _) -> evalIf falseBranch
-        Right (IntLiteral 0, _) -> evalIf falseBranch
-        Right (IntLiteral _, _) -> evalIf trueBranch
-        _ -> Left "if condition not a boolean"
-    where
-        evalIf branch = case evalFunction i branch env of
-                Right (asts, env1) -> evalAST i (IfRes asts) (env1 ++ env)
-                Left err -> Left err
-evalASTIfCond _ _ _ = Left "require three arguments"
-
-evalASTWhileCond :: Int -> Ast -> [Env] -> Either String ([Ast], [Env])
-evalASTWhileCond i (While cond branch) env =
-    case evalAST i cond env of
-        Right (BoolLiteral True, _) -> evalWhile
-        Right (BoolLiteral False, _) -> Right ([], env)
-        Right (IntLiteral 0, _) -> Right ([], env)
-        Right (IntLiteral _, _) -> evalWhile
-        _ -> Left "while condition not a boolean"
-    where
-        evalWhile = case evalFunction i branch env of
-                Right (asts, env1) ->
-                    case evalASTWhileCond i (While cond branch) env1 of
-                        Right (asts1, env2) -> Right (asts ++ asts1, env2)
-                        Left err -> Left err
-                Left err -> Left err
-evalASTWhileCond _ _ _ = Left "require two arguments"
-
-getASTInEnv :: String -> [Env] -> Maybe (Ast, [Env])
-getASTInEnv _ [] = Nothing
-getASTInEnv str ((Var key ast):xs) = if str == key
-                                     then Just (ast, xs)
-                                     else getASTInEnv str xs
-getASTInEnv str ((FuncVar key args asts):xs) = if str == key
-                                     then Just (FuncArgs args asts, xs)
-                                     else getASTInEnv str xs
-
-evalFuncCallArgs :: [String] -> [Ast] -> Maybe [Env]
-evalFuncCallArgs [] [] = Just []
-evalFuncCallArgs [] _ = Nothing
-evalFuncCallArgs _ [] = Nothing
-evalFuncCallArgs (x:xs) ((Symbol s):as) | x == s = evalFuncCallArgs xs as
-evalFuncCallArgs (x:xs) (a:as) = case evalFuncCallArgs xs as of
-                                    Just env -> Just $ (Var x a) : env
-                                    Nothing -> Nothing
-
-getFuncASTInEnv :: Int -> String -> [Ast] -> [Env] -> Either String (Ast, [Env])
-getFuncASTInEnv i func args env =
-    case getASTInEnv func env of
-        Just (FuncArgs astsArgs asts, _) -> case evalFuncCallArgs astsArgs args of
-            Just env1 -> evalAST i (FuncRes asts) (env1 ++ env)
-            Nothing -> Left $ "function " ++ func ++ " wrong arguments"
-        _ -> Left $ "function " ++ func ++ " not found"
-
-evalFunction :: Int -> [Ast] -> [Env] -> Either String ([Ast], [Env])
-evalFunction _ [] env = Right ([], env)
-evalFunction i (x:xs) env = case evalAST i x env of
-    Left err -> Left err
-    Right ((Print ast), env1) -> case evalFunction i xs env1 of
-        Left err -> Left err
-        Right (asts, env2) -> Right ((Print ast) : asts, env2)
-    Right ((FuncRes asts), env1) -> case evalFunction i asts env1 of
-        Left err -> Left err
-        Right (asts1, env2) -> case evalFunction i xs env2 of
-            Left err -> Left err
-            Right (asts2, env3) -> Right (asts1 ++ asts2, env3)
-    Right ((IfRes asts), env1) -> case evalFunction i asts env1 of
-        Left err -> Left err
-        Right (asts1, env2) -> case evalFunction i xs env2 of
-            Left err -> Left err
-            Right (asts2, env3) -> Right (asts1 ++ asts2, env3)
-    Right (_, env1) -> case evalFunction i xs env1 of
-        Left err -> Left err
-        Right (asts, env2) -> Right (asts, env2)
-
-evalPrint :: Int -> [Ast] -> [Env] -> Either String [Ast]
-evalPrint _ [] _ = Right []
-evalPrint i (x:xs) env =
-    case evalAST i x env of
-        Left err -> Left err
-        Right (ast, _) ->
-            case evalPrint i xs env of
-                            Left err -> Left err
-                            Right asts -> Right $ ast : asts
-
-evalAST :: Int -> Ast -> [Env] -> Either String (Ast, [Env])
-evalAST 1000 _ _ = Left "stack overflow"
-evalAST j ast env = let i = j + 1 in
-            case ast of
-                (Define name ast1) -> Right (ast1, (Var name ast1) : env)
-                (Func name args asts) ->
-                    Right (ast, (FuncVar name args asts) : env)
-                (FuncRes asts) -> case evalFunction i asts env of
-                    Left err -> Left err
-                    Right (asts1, _) -> Right (FuncRes asts1, env)
-                (IfRes asts) -> case evalFunction i asts env of
-                    Left err -> Left err
-                    Right (asts1, env1) -> Right (IfRes asts1, env1)
-                (Call "add" _) -> plus $ evalASTCall i ast env
-                (Call "mul" _) -> mul $ evalASTCall i ast env
-                (Call "div" _) -> myDiv $ evalASTCall i ast env
-                (Call "mod" _) -> myMod $ evalASTCall i ast env
-                (Call "sub" _) -> minus $ evalASTCall i ast env
-                (Call "equal" _) -> equal $ evalASTCall i ast env
-                (Call "ne" _) -> notequal $ evalASTCall i ast env
-                (Call "leq" _) -> myLeq $ evalASTCall i ast env
-                (Call "geq" _) -> myGeq $ evalASTCall i ast env
-                (Call "lower" _) -> lower $ evalASTCall i ast env
-                (Call "greater" _) -> greater $ evalASTCall i ast env
-                (Call "fact" _) -> fact $ evalASTCall i ast env
-                (If _ _ _) -> evalASTIfCond i ast env
-                (While _ _) -> case evalASTWhileCond i ast env of
-                                    Left err -> Left err
-                                    Right (asts1, env1) ->
-                                         Right (FuncRes asts1, env1)
-                (Call "print" asts) -> case evalPrint i asts env of
-                    Left err -> Left err
-                    Right asts1 -> Right (Print asts1, env)
-                (Call func args) -> getFuncASTInEnv i func args env
-                (Symbol str) -> case getASTInEnv str env of
-                    Just (ast1, env1) -> evalAST i ast1 env1
-                    Nothing -> Left $ "variable " ++ str ++ " not found"
-                _ -> Right (ast, env)
-
-evalCallPrint :: [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
-evalCallPrint [] env = (putStrLn []) >> (return $ Right (Void, env))
-evalCallPrint asts env =
-    evalCallArgs asts env >>= \evalArgs ->
+evalCallPrint :: Int -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCallPrint _ [] env = (putStrLn []) >> (return $ Right (Void, env))
+evalCallPrint stack asts env =
+    evalCallArgs stack asts env >>= \evalArgs ->
         case evalArgs of
             Left err -> return $ Left err
             Right asts1 -> (putStrLn $ prettyPrintString (Print asts1))
                         >> (return $ Right (Void, env))
 
-evalCallArgs :: [Ast] -> [Env] -> IO (Either String [Ast])
-evalCallArgs [] _ = return $ Right []
-evalCallArgs (x:xs) env =
-    evalAST2 1 x env >>= \evalX ->
+evalCallArgs :: Int -> [Ast] -> [Env] -> IO (Either String [Ast])
+evalCallArgs _ [] _ = return $ Right []
+evalCallArgs stack (x:xs) env =
+    evalAST stack x env >>= \evalX ->
         case evalX of
             Left err -> return $ Left err
             Right (ast, env1) ->
-                evalCallArgs xs env1 >>= \evalArgs ->
+                evalCallArgs stack xs env1 >>= \evalArgs ->
                 case evalArgs of
                     Left err -> return $ Left err
                     Right asts -> return $ Right $ ast : asts
 
-evalCallFunc :: ([Ast] -> Either String Ast) -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
-evalCallFunc func asts env =
-    evalCallArgs asts env >>= \evalArgs ->
+evalCallFunc :: Int -> ([Ast] -> Either String Ast) -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCallFunc stack func asts env =
+    evalCallArgs stack asts env >>= \evalArgs ->
         case evalArgs of
             Left err -> return $ Left err
             Right asts1 ->
@@ -183,49 +43,60 @@ evalCallFunc func asts env =
                     Left err -> return $ Left err
                     Right ast -> return $ Right (ast, env)
 
-evalCall :: String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
-evalCall name asts env =
-    evalCallUserDefined name asts env >>= \evalUserDefined ->
+evalCall :: Int -> String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCall stack name asts env =
+    evalCallUser stack name asts env >>= \evalUserDefined ->
         case evalUserDefined of
             Just (ast, env1) -> return $ Right (ast, env1)
-            Nothing -> evalCallBuiltin name asts env
+            Nothing -> evalCallBuiltin stack name asts env
 
-evalCallUserDefined :: String -> [Ast] -> [Env] -> IO (Maybe (Ast, [Env]))
-evalCallUserDefined _ _ [] = return Nothing
-evalCallUserDefined name asts ((FuncVar var params content):xs) | var == name =
-    evalASTS content xs >>= \ret -> return $ Just (ret, xs)
-evalCallUserDefined name asts (_:xs) = evalCallUserDefined name asts xs
+evalCallUser :: Int -> String -> [Ast] -> [Env] -> IO (Maybe (Ast, [Env]))
+evalCallUser _ _ _ [] = return Nothing
+evalCallUser stack name asts ((FuncVar var params content):xs) | var == name =
+    evalASTS stack content ((FuncVar var params content) : xs) >>= \ret ->
+        return $ Just (ret, xs)
+evalCallUser stack name asts (_:xs) = evalCallUser stack name asts xs
 
-evalCallBuiltin :: String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
-evalCallBuiltin "add" asts env = evalCallFunc add asts env
-evalCallBuiltin name _ _ = return $ Left $ "function not found: " ++ name
+evalCallBuiltin :: Int -> String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCallBuiltin stack "add" asts env = evalCallFunc stack add asts env
+evalCallBuiltin stack "sub" asts env = evalCallFunc stack sub asts env
+evalCallBuiltin stack "mul" asts env = evalCallFunc stack mul asts env
+evalCallBuiltin stack "div" asts env = evalCallFunc stack myDiv asts env
+evalCallBuiltin stack "mod" asts env = evalCallFunc stack myMod asts env
+evalCallBuiltin stack "leq" asts env = evalCallFunc stack myLeq asts env
+evalCallBuiltin stack "geq" asts env = evalCallFunc stack myGeq asts env
+evalCallBuiltin stack "equal" asts env = evalCallFunc stack equal asts env
+evalCallBuiltin stack "ne" asts env = evalCallFunc stack notequal asts env
+evalCallBuiltin stack "lower" asts env = evalCallFunc stack lower asts env
+evalCallBuiltin stack "greater" asts env = evalCallFunc stack greater asts env
+evalCallBuiltin _ name _ _ = return $ Left $ "function not found: " ++ name
 
-evalSymbol :: String -> [Env] -> IO (Either String (Ast, [Env]))
-evalSymbol sym [] = return $ Left $ "symbol not found: " ++ sym
-evalSymbol sym ((Var var ast):xs) | var == sym =
-    evalAST2 1 ast xs >>= \eval ->
+evalSymbol :: Int -> String -> [Env] -> IO (Either String (Ast, [Env]))
+evalSymbol _ sym [] = return $ Left $ "symbol not found: " ++ sym
+evalSymbol stack sym ((Var var ast):xs) | var == sym =
+    evalAST stack ast xs >>= \eval ->
         case eval of
             Left err -> return $ Left err
             Right (ast1, env) -> return $ Right (ast1, env)
-evalSymbol sym (_:xs) = evalSymbol sym xs
+evalSymbol stack sym (_:xs) = evalSymbol stack sym xs
 
-evalAST2 :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
-evalAST2 1000 _ _ = return $ Left "stack overflow"
-evalAST2 j ast env =
-    let i = j + 1 in
-        case ast of
-            (Define name ast1) -> return $ Right (Void, (Var name ast1) : env)
-            (Func name args asts) -> return $ Right (Void, (FuncVar name args asts) : env)
-            (Call "print" asts) -> evalCallPrint asts env
-            (Call name asts) -> evalCall name asts env
-            (Symbol sym) -> evalSymbol sym env
-            _ -> return $ Right (ast, env)
+evalAST :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
+evalAST _ (Define name ast1) env = return $ Right (Void, (Var name ast1) : env)
+evalAST _ (Func name args asts) env =
+    return $ Right (Void, (FuncVar name args asts) : env)
+evalAST stack (Call "print" asts) env = evalCallPrint stack asts env
+evalAST stack (Call name asts) env = evalCall stack name asts env
+evalAST stack (Symbol sym) env = evalSymbol stack sym env
+evalAST _ ast env = return $ Right (ast, env)
 
-evalASTS :: [Ast] -> [Env] -> IO (Ast)
-evalASTS [] _ = return (Void)
-evalASTS (x:xs) env =
-    evalAST2 1 x env >>= \evaluation ->
+evalASTS :: Int -> [Ast] -> [Env] -> IO (Ast)
+evalASTS 1000 _ _ = putStrLn "Exception: Stack overflow"
+                 >> exitWith (ExitFailure 84)
+evalASTS _ [] _ = return (Void)
+evalASTS stack (x:xs) env =
+    evalAST (stack + 1) x env >>= \evaluation ->
         case evaluation of
-            Left err -> putStrLn err >> return (Void)
+            Left err -> (putStrLn $ "Exception: " ++ err)
+                >> exitWith (ExitFailure 84)
             Right (Return ast, _) -> return ast
-            Right (_, env1) -> evalASTS xs env1
+            Right (_, env1) -> evalASTS stack xs env1

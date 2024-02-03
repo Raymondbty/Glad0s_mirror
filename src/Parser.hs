@@ -122,7 +122,7 @@ parseReturnContent ast = Parser $ \str -> Just (Return ast, str)
 
 parseReturnValue :: Parser Ast
 parseReturnValue =
-    parseSpaces *> parseWord "return" *> parseSpaces *> parseCallOr >>= \ast ->
+    parseSpaces *> parseWord "return " *> parseSpaces *> parseCallOr >>= \ast ->
         parseReturnContent ast
 
 parseReturn :: Parser Ast

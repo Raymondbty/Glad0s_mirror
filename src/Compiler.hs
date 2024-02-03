@@ -35,8 +35,6 @@ convAst (Call "equal" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x05]
 convAst (Call "lower" (ast1:ast2:_)) =
   (loopAst [ast2]) ++ (loopAst [ast1]) ++ [0x01, 0x06]
-convAst (Call "fact" (ast:_)) =
-  (loopAst [ast]) ++ [0x01, 0x07]
 convAst (If ast1 ast2 ast3) =
   let cond = loopAst [ast1]
       trueCond = loopAst ast2 ++ [0x04] ++ (intToBytes $ calcJump falseCond)

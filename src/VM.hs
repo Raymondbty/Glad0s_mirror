@@ -7,7 +7,6 @@
 
 module VM (startVM, execOpADD, execOpSUB, execOpMUL, execOpDIV, execOpMOD, execOpEQUAL, execOpLESS, remInst, execJumpIfFalse, exec, parseVM) where
 
-import Funcs(factorial)
 import Data.Word
 import File
 import System.Exit
@@ -55,13 +54,6 @@ execOpLESS insts ((BoolVM b1):(BoolVM b2):stack) =
     exec insts ((BoolVM $ b1 < b2) : stack)
 execOpLESS _ _ = Left "LESS need two arguments"
 
-execOpFACT :: Insts -> Stack -> Either String Value
-execOpFACT insts ((IntVM n):stack) =
-    case factorial n of
-        Left err -> Left err
-        Right i -> exec insts ((IntVM i) : stack)
-execOpFACT _ _ = Left "FACT need one argument"
-
 remInst :: Int -> Insts -> Insts
 remInst _ [] = []
 remInst i (x:xs) | i > 0 = remInst (i - 1) xs
@@ -80,7 +72,6 @@ exec ((CallOp DIV):insts) stack = execOpDIV insts stack
 exec ((CallOp MOD):insts) stack = execOpMOD insts stack
 exec ((CallOp EQUAL):insts) stack = execOpEQUAL insts stack
 exec ((CallOp LESS):insts) stack = execOpLESS insts stack
-exec ((CallOp FACT):insts) stack = execOpFACT insts stack
 exec ((Push value):insts) stack = exec insts (value : stack)
 exec (Ret:_) (value:_) = Right value
 exec ((JumpIfFalse i):insts) stack = execJumpIfFalse i insts stack
@@ -107,7 +98,6 @@ readCall (0x03:xs) = continueParsing (CallOp DIV) xs
 readCall (0x04:xs) = continueParsing (CallOp MOD) xs
 readCall (0x05:xs) = continueParsing (CallOp EQUAL) xs
 readCall (0x06:xs) = continueParsing (CallOp LESS) xs
-readCall (0x07:xs) = continueParsing (CallOp FACT) xs
 readCall _ = Nothing
 
 readJumpIfFalse :: [Word8] -> Maybe Insts
