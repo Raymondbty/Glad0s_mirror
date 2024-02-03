@@ -31,46 +31,14 @@ or:
 ### Command Lines
 
 ```
-Welcome to Glados !
-
-Commands:
-  !quit - Quit the program.
-  !man  - Display the manual.
-  !help - Display this help message.
+./glados [--compile file | --disassemble file | --vm file | --man | --help]
 ```
 
---------------------------------------
-
-### Manual Glados
-
-```
-Welcome to the manual !
-
----------------------------------------------
-Add:
-└─$ example -> (+ 1 2)
----------------------------------------------
-Sub:
-└─$ example -> (- 2 1)
----------------------------------------------
-Mul:
-└─$ example -> (* 2 2)
----------------------------------------------
-Div:
-└─$ example -> (/ 6 2)
-└─$ example -> (div 6 2)
----------------------------------------------
-Eq:
-└─$ example -> (eq? "test" "test")
----------------------------------------------
-Cond:
-└─$ example -> (if (eq? 5 4) (+ 6 6) (- 7 1))
----------------------------------------------
-Def:
-└─$ example -> (define test 5)
-└─$ example -> (define \"test\" (+ 5 6))
----------------------------------------------
-```
+`--compile file`: Compile and run the GLaDOS program from the specified file.
+`--disassemble file`: Disassemble the bytecode of the GLaDOS program from the specified file.
+`--vm file`: Run the GLaDOS program using the virtual machine from the specified file.
+`--man`: Display the manual for GLaDOS.
+`--help`: Display this help message.
 
 --------------------------------------
 
@@ -117,17 +85,12 @@ Upon every push to the main branch, a GitHub Actions workflow is triggered. This
   - **Check coding style with hlint:** Verifies coding style using `hlint` and ignores errors.
   - **Create Release Artifact:** Uploads the compiled project and test results as an artifact named `release-artifact`.
 
-### Project Architecture
+### Project structure
 
 ```
 ├── app
 │   └── Main.hs
 ├── CHANGELOG.md
-├── examples
-│   ├── call.scm
-│   ├── error.scm
-│   └── foo.scm
-├── glados
 ├── glados.cabal
 ├── langage.bnf
 ├── LICENSE
@@ -136,24 +99,38 @@ Upon every push to the main branch, a GitHub Actions workflow is triggered. This
 ├── README.md
 ├── Setup.hs
 ├── src
-│   ├── Ast.hs
 │   ├── CommandLines.hs
+│   ├── Compiler.hs
+│   ├── Disassembler.hs
 │   ├── Eval.hs
+│   ├── File.hs
 │   ├── Funcs.hs
 │   ├── Glados.hs
 │   ├── Parser.hs
-│   └── Print.hs
+│   ├── ParserUtils.hs
+│   ├── Print.hs
+│   ├── Types.hs
+│   ├── Utils.hs
+│   └── VM.hs
 ├── stack.yaml
 ├── stack.yaml.lock
 └── test
-    ├── AstSpec.hs
     ├── CommandLinesSpec.hs
-    ├── EvalSpec.hs
-    ├── FuncsSpec.hs
-    ├── GladosSpec.hs
+    ├── examples
+    │   ├── test_factorial.scm
+    │   ├── test_fibonacci.scm
+    │   ├── test_five.scm
+    │   ├── test_four.scm
+    │   ├── test_one.scm
+    │   ├── test_sum_of_integers.scm
+    │   ├── test_three.scm
+    │   └── test_two.scm
     ├── Instances.hs
+    ├── IntegrationSpec.hs
     ├── Main.hs
-    └── ParserSpec.hs
+    ├── ParserSpec.hs
+    ├── ParserUtilsSpec.hs
+    └── TypesSpec.hs
 ```
 
 --------------------------------------
