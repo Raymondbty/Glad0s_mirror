@@ -34,11 +34,11 @@ or:
 ./glados [--compile file | --disassemble file | --vm file | --man | --help]
 ```
 
-`--compile file`: Compile and run the GLaDOS program from the specified file.
-`--disassemble file`: Disassemble the bytecode of the GLaDOS program from the specified file.
-`--vm file`: Run the GLaDOS program using the virtual machine from the specified file.
-`--man`: Display the manual for GLaDOS.
-`--help`: Display this help message.
+```--compile file```: Compile and run the GLaDOS program from the specified file.
+```--disassemble file```: Disassemble the bytecode of the GLaDOS program from the specified file.
+```--vm file```: Run the GLaDOS program using the virtual machine from the specified file.
+```--man```: Display the manual for GLaDOS.
+```--help```: Display this help message.
 
 --------------------------------------
 
