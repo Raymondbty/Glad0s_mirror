@@ -23,6 +23,7 @@ data Ast = Define String Ast
          | While Ast [Ast]
          | FuncArgs [String] [Ast]
          | FuncRes [Ast]
+         | Void
          deriving Show
 
 data Env = Var String Ast

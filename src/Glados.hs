@@ -10,27 +10,12 @@ module Glados (start) where
 import CommandLines
 import Compiler
 import Disassembler
-import Eval (evalAST)
+import Eval (evalASTS)
 import Parser (parse)
-import Print
 import System.Environment
 import System.IO
 import Types
 import VM
-
-printFuncRes :: [Ast] -> IO ()
-printFuncRes [] = return ()
-printFuncRes (x:xs) = (putStrLn $ prettyPrintString x) >> printFuncRes xs
-
-run :: [Ast] -> [Env] -> IO ()
-run [] _ = return ()
-run (x:xs) env = case evalAST 1 x env of
-    Left err -> putStrLn ("Exception: " ++ err ++ ": " ++ (prettyPrint x))
-    Right (FuncRes asts, env1) -> (printFuncRes asts) >> run xs env1
-    Right (IfRes asts, env1) -> (printFuncRes asts) >> run xs env1
-    Right (Print asts, env1) ->
-        (putStrLn $ prettyPrintString (Print asts)) >> run xs env1
-    Right (_, env1) -> run xs env1
 
 getInput :: IO (String)
 getInput = isEOF >>= \eof ->
@@ -58,5 +43,5 @@ startInterpreter file = getInput >>= \input ->
         Just (asts, []) ->
             case file of
                 Just path -> compile asts path
-                Nothing -> run asts []
+                Nothing -> evalASTS asts []
         _ -> putStrLn $ "Parser error"

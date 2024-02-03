@@ -5,9 +5,10 @@
 -- Ast.hs
 -}
 
-module Eval (evalASTIfCond, evalAST) where
+module Eval (evalASTIfCond, evalASTS) where
 
 import Funcs
+import Print
 import Types
 
 evalASTCallArgs :: Int -> [Ast] -> [Env] -> Either String [Ast]
@@ -150,3 +151,91 @@ evalAST j ast env = let i = j + 1 in
                     Just (ast1, env1) -> evalAST i ast1 env1
                     Nothing -> Left $ "variable " ++ str ++ " not found"
                 _ -> Right (ast, env)
+
+findAST :: String -> [Env] -> Either String (Ast, [Env])
+findAST sym [] = Left $ "symbol not found: " ++ sym
+findAST sym ((Var var ast):xs) | var == sym = Right (ast, xs)
+findAST sym (_:xs) = findAST sym xs
+
+next :: Ast -> [Ast] -> [Env] -> IO (Either String [Ast])
+next ast xs env =
+    eval xs env >>= \evalXS ->
+        case evalXS of
+            Left err -> return $ Left err
+            Right asts -> return $ Right $ ast : asts
+
+eval :: [Ast] -> [Env] -> IO (Either String [Ast])
+eval [] _ = return $ Right []
+eval ((Symbol sym):xs) env =
+    case findAST sym env of
+        Left err -> return $ Left err
+        Right (ast, env1) -> eval (ast : xs) env1
+eval (x:xs) env =
+    evalAST2 1 x env >>= \evalX ->
+        case evalX of
+            Left err -> return $ Left err
+            Right (ast, _) -> next ast xs env
+
+evalPrint2 :: [Ast] -> [Env] -> IO (Either String ())
+evalPrint2 asts env =
+    eval asts env >>= \evalAsts ->
+        case evalAsts of
+            Left err -> return $ Left err
+            Right asts1 -> (putStrLn $ prettyPrintString (Print asts1))
+                >> (return $ Right ())
+
+evalPrintCall :: [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalPrintCall asts env =
+    evalPrint2 asts env >>= \printEval ->
+        case printEval of
+            Left err -> return $ Left err
+            Right () -> return $ Right (Void, env)
+
+evalCallArgs :: [Ast] -> [Env] -> IO (Either String [Ast])
+evalCallArgs [] _ = return $ Right []
+evalCallArgs ((Symbol sym):xs) env =
+    case findAST sym env of
+        Left err -> return $ Left err
+        Right (ast, env1) ->
+            evalCallArgs xs env1 >>= \evalArgs ->
+                case evalArgs of
+                    Left err -> return $ Left err
+                    Right asts -> return $ Right $ ast : asts
+evalCallArgs (x:xs) env =
+    evalCallArgs xs env >>= \evalArgs ->
+        case evalArgs of
+            Left err -> return $ Left err
+            Right asts -> return $ Right $ x : asts
+
+evalCallFunc :: ([Ast] -> Either String Ast) -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCallFunc func asts env =
+    evalCallArgs asts env >>= \evalArgs ->
+        case evalArgs of
+            Left err -> return $ Left err
+            Right asts1 ->
+                case func asts1 of
+                    Left err -> return $ Left err
+                    Right ast -> return $ Right (ast, env)
+
+evalCall :: String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCall "add" asts env = evalCallFunc add asts env
+evalCall name _ _ = return $ Left $ "function not found: " ++ name
+
+evalAST2 :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
+evalAST2 1000 _ _ = return $ Left "stack overflow"
+evalAST2 j ast env =
+    let i = j + 1 in
+        case ast of
+            (Define name ast1) -> return $ Right (Void, (Var name ast1) : env)
+            (Func name args asts) -> return $ Right (Void, (FuncVar name args asts) : env)
+            (Call "print" asts) -> evalPrintCall asts env
+            (Call name asts) -> evalCall name asts env
+            _ -> return $ Right (ast, env)
+
+evalASTS :: [Ast] -> [Env] -> IO ()
+evalASTS [] _ = return ()
+evalASTS (x:xs) env =
+    evalAST2 1 x env >>= \evaluation ->
+        case evaluation of
+            Left err -> putStrLn err >> return ()
+            Right (_, env1) -> evalASTS xs env1
