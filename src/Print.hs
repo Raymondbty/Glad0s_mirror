@@ -17,7 +17,8 @@ prettyPrintList (x:xs) = (prettyPrint x) ++ ", " ++ (prettyPrintList xs)
 prettyPrint :: Ast -> String
 prettyPrint (IntLiteral i) = show i
 prettyPrint (StringLiteral str) = show str
-prettyPrint (Call symbol list) = symbol ++ "(" ++ (prettyPrintList list) ++ ");"
+prettyPrint (Call symbol list) =
+    symbol ++ "(" ++(prettyPrintList list) ++ ");"
 prettyPrint (If cond _ _) = "if (" ++ (prettyPrint cond) ++ ")"
 prettyPrint (BoolLiteral b) = show b
 prettyPrint (Symbol str) = str
@@ -29,7 +30,8 @@ prettyPrint ast = show ast
 prettyPrintString :: Ast -> String
 prettyPrintString (StringLiteral str) = str
 prettyPrintString (Print []) = []
-prettyPrintString (Print (x:xs)) = (prettyPrintString x) ++ (prettyPrintString (Print xs))
+prettyPrintString (Print (x:xs)) =
+    (prettyPrintString x) ++ (prettyPrintString (Print xs))
 prettyPrintString ast = prettyPrint ast
 
 wrongArguments :: Ast -> String

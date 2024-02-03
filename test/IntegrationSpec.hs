@@ -96,6 +96,17 @@ callTestSumOfInt = do
       exitCode `shouldBe` ExitSuccess
       output `shouldBe` "15\n"
 
+callTestFibonacci :: Spec
+callTestFibonacci = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_fibonacci.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test_fibonacci.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n"
+
 spec :: Spec
 spec = do
     callTestOne
@@ -104,4 +115,4 @@ spec = do
     callTestFour
     callTestFive
     callTestFact
-    callTestSumOfInt
+    callTestFibonacci

@@ -119,7 +119,8 @@ evalAST 1000 _ _ = Left "stack overflow"
 evalAST j ast env = let i = j + 1 in
             case ast of
                 (Define name ast1) -> Right (ast1, (Var name ast1) : env)
-                (Func name args asts) -> Right (ast, (FuncVar name args asts) : env)
+                (Func name args asts) ->
+                    Right (ast, (FuncVar name args asts) : env)
                 (FuncRes asts) -> case evalFunction i asts env of
                     Left err -> Left err
                     Right (asts1, _) -> Right (FuncRes asts1, env)
@@ -141,7 +142,8 @@ evalAST j ast env = let i = j + 1 in
                 (If _ _ _) -> evalASTIfCond i ast env
                 (While _ _) -> case evalASTWhileCond i ast env of
                                     Left err -> Left err
-                                    Right (asts1, env1) -> Right (FuncRes asts1, env1)
+                                    Right (asts1, env1) ->
+                                         Right (FuncRes asts1, env1)
                 (Call "print" asts) -> case evalPrint i asts env of
                     Left err -> Left err
                     Right asts1 -> Right (Print asts1, env)

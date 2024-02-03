@@ -82,7 +82,8 @@ parseIfElse =
     parseWord "if" *>
     parseSpaces *> parseChar '(' *> parseSpaces *> parseCallOr >>= \ast ->
     parseChar ')' *> parseSpaces *> parseChar '{' *> parse >>= \trueBranch ->
-        parseChar '}' *> parseSpaces *> parseWord "else" *> parseSpaces *> parseChar '{'
+        parseChar '}' *> parseSpaces *> parseWord "else" *>
+         parseSpaces *> parseChar '{'
         *> parse >>= \falseBranch ->
             parseIfElseContent ast trueBranch falseBranch <* parseChar '}'
 

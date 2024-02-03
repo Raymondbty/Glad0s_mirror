@@ -28,7 +28,8 @@ run (x:xs) env = case evalAST 1 x env of
     Left err -> putStrLn ("Exception: " ++ err ++ ": " ++ (prettyPrint x))
     Right (FuncRes asts, env1) -> (printFuncRes asts) >> run xs env1
     Right (IfRes asts, env1) -> (printFuncRes asts) >> run xs env1
-    Right (Print asts, env1) -> (putStrLn $ prettyPrintString (Print asts)) >> run xs env1
+    Right (Print asts, env1) ->
+        (putStrLn $ prettyPrintString (Print asts)) >> run xs env1
     Right (_, env1) -> run xs env1
 
 getInput :: IO (String)
