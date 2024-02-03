@@ -43,5 +43,5 @@ startInterpreter file = getInput >>= \input ->
         Just (asts, []) ->
             case file of
                 Just path -> compile asts path
-                Nothing -> evalASTS asts []
+                Nothing -> evalASTS asts [] >>= \_ -> return ()
         _ -> putStrLn $ "Parser error"

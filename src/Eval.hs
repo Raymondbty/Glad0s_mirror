@@ -184,8 +184,21 @@ evalCallFunc func asts env =
                     Right ast -> return $ Right (ast, env)
 
 evalCall :: String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
-evalCall "add" asts env = evalCallFunc add asts env
-evalCall name _ _ = return $ Left $ "function not found: " ++ name
+evalCall name asts env =
+    evalCallUserDefined name asts env >>= \evalUserDefined ->
+        case evalUserDefined of
+            Just (ast, env1) -> return $ Right (ast, env1)
+            Nothing -> evalCallBuiltin name asts env
+
+evalCallUserDefined :: String -> [Ast] -> [Env] -> IO (Maybe (Ast, [Env]))
+evalCallUserDefined _ _ [] = return Nothing
+evalCallUserDefined name asts ((FuncVar var params content):xs) | var == name =
+    evalASTS content xs >>= \ret -> return $ Just (ret, xs)
+evalCallUserDefined name asts (_:xs) = evalCallUserDefined name asts xs
+
+evalCallBuiltin :: String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCallBuiltin "add" asts env = evalCallFunc add asts env
+evalCallBuiltin name _ _ = return $ Left $ "function not found: " ++ name
 
 evalSymbol :: String -> [Env] -> IO (Either String (Ast, [Env]))
 evalSymbol sym [] = return $ Left $ "symbol not found: " ++ sym
@@ -208,10 +221,11 @@ evalAST2 j ast env =
             (Symbol sym) -> evalSymbol sym env
             _ -> return $ Right (ast, env)
 
-evalASTS :: [Ast] -> [Env] -> IO ()
-evalASTS [] _ = return ()
+evalASTS :: [Ast] -> [Env] -> IO (Ast)
+evalASTS [] _ = return (Void)
 evalASTS (x:xs) env =
     evalAST2 1 x env >>= \evaluation ->
         case evaluation of
-            Left err -> putStrLn err >> return ()
+            Left err -> putStrLn err >> return (Void)
+            Right (Return ast, _) -> return ast
             Right (_, env1) -> evalASTS xs env1

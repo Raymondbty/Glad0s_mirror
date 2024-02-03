@@ -117,9 +117,23 @@ parseDefine =
     parseVar >>= \name ->
         parseSpaces *> parseChar '=' *> parseSpaces *> parseDefineSet name
 
+parseReturnContent :: Ast -> Parser Ast
+parseReturnContent ast = Parser $ \str -> Just (Return ast, str)
+
+parseReturnValue :: Parser Ast
+parseReturnValue =
+    parseSpaces *> parseWord "return" *> parseSpaces *> parseCallOr >>= \ast ->
+        parseReturnContent ast
+
+parseReturn :: Parser Ast
+parseReturn =
+    parseSpaces *> parseWord "return" *> parseSpaces *> parseReturnContent Void
+
 parseOr :: Parser Ast
 parseOr = parseInt <* parseSep
       <|> parseBool <* parseSep
+      <|> parseReturnValue <* parseSep
+      <|> parseReturn <* parseSep
       <|> parseSymbol <* parseSep
       <|> parseString <* parseSep
       <|> parseFunc

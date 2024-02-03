@@ -24,6 +24,7 @@ data Ast = Define String Ast
          | FuncArgs [String] [Ast]
          | FuncRes [Ast]
          | Void
+         | Return Ast
          deriving Show
 
 data Env = Var String Ast
