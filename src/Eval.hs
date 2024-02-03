@@ -152,60 +152,26 @@ evalAST j ast env = let i = j + 1 in
                     Nothing -> Left $ "variable " ++ str ++ " not found"
                 _ -> Right (ast, env)
 
-findAST :: String -> [Env] -> Either String (Ast, [Env])
-findAST sym [] = Left $ "symbol not found: " ++ sym
-findAST sym ((Var var ast):xs) | var == sym = Right (ast, xs)
-findAST sym (_:xs) = findAST sym xs
-
-next :: Ast -> [Ast] -> [Env] -> IO (Either String [Ast])
-next ast xs env =
-    eval xs env >>= \evalXS ->
-        case evalXS of
-            Left err -> return $ Left err
-            Right asts -> return $ Right $ ast : asts
-
-eval :: [Ast] -> [Env] -> IO (Either String [Ast])
-eval [] _ = return $ Right []
-eval ((Symbol sym):xs) env =
-    case findAST sym env of
-        Left err -> return $ Left err
-        Right (ast, env1) -> eval (ast : xs) env1
-eval (x:xs) env =
-    evalAST2 1 x env >>= \evalX ->
-        case evalX of
-            Left err -> return $ Left err
-            Right (ast, _) -> next ast xs env
-
-evalPrint2 :: [Ast] -> [Env] -> IO (Either String ())
-evalPrint2 asts env =
-    eval asts env >>= \evalAsts ->
-        case evalAsts of
+evalCallPrint :: [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCallPrint [] env = (putStrLn []) >> (return $ Right (Void, env))
+evalCallPrint asts env =
+    evalCallArgs asts env >>= \evalArgs ->
+        case evalArgs of
             Left err -> return $ Left err
             Right asts1 -> (putStrLn $ prettyPrintString (Print asts1))
-                >> (return $ Right ())
-
-evalPrintCall :: [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
-evalPrintCall asts env =
-    evalPrint2 asts env >>= \printEval ->
-        case printEval of
-            Left err -> return $ Left err
-            Right () -> return $ Right (Void, env)
+                        >> (return $ Right (Void, env))
 
 evalCallArgs :: [Ast] -> [Env] -> IO (Either String [Ast])
 evalCallArgs [] _ = return $ Right []
-evalCallArgs ((Symbol sym):xs) env =
-    case findAST sym env of
-        Left err -> return $ Left err
-        Right (ast, env1) ->
-            evalCallArgs xs env1 >>= \evalArgs ->
+evalCallArgs (x:xs) env =
+    evalAST2 1 x env >>= \evalX ->
+        case evalX of
+            Left err -> return $ Left err
+            Right (ast, env1) ->
+                evalCallArgs xs env1 >>= \evalArgs ->
                 case evalArgs of
                     Left err -> return $ Left err
                     Right asts -> return $ Right $ ast : asts
-evalCallArgs (x:xs) env =
-    evalCallArgs xs env >>= \evalArgs ->
-        case evalArgs of
-            Left err -> return $ Left err
-            Right asts -> return $ Right $ x : asts
 
 evalCallFunc :: ([Ast] -> Either String Ast) -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalCallFunc func asts env =
@@ -221,6 +187,15 @@ evalCall :: String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalCall "add" asts env = evalCallFunc add asts env
 evalCall name _ _ = return $ Left $ "function not found: " ++ name
 
+evalSymbol :: String -> [Env] -> IO (Either String (Ast, [Env]))
+evalSymbol sym [] = return $ Left $ "symbol not found: " ++ sym
+evalSymbol sym ((Var var ast):xs) | var == sym =
+    evalAST2 1 ast xs >>= \eval ->
+        case eval of
+            Left err -> return $ Left err
+            Right (ast1, env) -> return $ Right (ast1, env)
+evalSymbol sym (_:xs) = evalSymbol sym xs
+
 evalAST2 :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
 evalAST2 1000 _ _ = return $ Left "stack overflow"
 evalAST2 j ast env =
@@ -228,8 +203,9 @@ evalAST2 j ast env =
         case ast of
             (Define name ast1) -> return $ Right (Void, (Var name ast1) : env)
             (Func name args asts) -> return $ Right (Void, (FuncVar name args asts) : env)
-            (Call "print" asts) -> evalPrintCall asts env
+            (Call "print" asts) -> evalCallPrint asts env
             (Call name asts) -> evalCall name asts env
+            (Symbol sym) -> evalSymbol sym env
             _ -> return $ Right (ast, env)
 
 evalASTS :: [Ast] -> [Env] -> IO ()
