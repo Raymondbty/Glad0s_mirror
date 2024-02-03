@@ -41,8 +41,7 @@ getInput = isEOF >>= \eof ->
             return $ line ++ rest
 
 start :: IO ()
-start = getArgs >>= \args ->
-    case args of
+start = getArgs >>= \args -> case args of
         ("--compile":file:_) -> startInterpreter $ Just file
         ("--compile":_)      -> putStrLn "--compile argument needs a file"
         ("--disassemble":file:_) -> disassemble file

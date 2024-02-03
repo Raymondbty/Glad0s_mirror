@@ -33,8 +33,7 @@ evalASTIfCond i (If cond trueBranch falseBranch) env =
         Right (IntLiteral _, _) -> evalIf trueBranch
         _ -> Left "if condition not a boolean"
     where
-        evalIf branch =
-            case evalFunction i branch env of
+        evalIf branch = case evalFunction i branch env of
                 Right (asts, env1) -> evalAST i (IfRes asts) (env1 ++ env)
                 Left err -> Left err
 evalASTIfCond _ _ _ = Left "require three arguments"
@@ -48,8 +47,7 @@ evalASTWhileCond i (While cond branch) env =
         Right (IntLiteral _, _) -> evalWhile
         _ -> Left "while condition not a boolean"
     where
-        evalWhile =
-            case evalFunction i branch env of
+        evalWhile = case evalFunction i branch env of
                 Right (asts, env1) ->
                     case evalASTWhileCond i (While cond branch) env1 of
                         Right (asts1, env2) -> Right (asts ++ asts1, env2)

@@ -71,8 +71,7 @@ parseStr = Parser $ \str ->
         ('\\':'"':xs) -> f '"' xs
         (x:xs) -> f x xs
     where
-        f x xs =
-            case runParser parseStr xs of
+        f x xs = case runParser parseStr xs of
                 Just (res, rest) -> Just (x : res, rest)
                 Nothing -> Nothing
 
@@ -83,8 +82,7 @@ parseSpaces :: Parser String
 parseSpaces = parseMany (parseChar ' ')
 
 parseListArgs :: Parser [String]
-parseListArgs = Parser $ \str ->
-    case str of
+parseListArgs = Parser $ \str -> case str of
         [] -> Nothing
         (' ':xs) -> runParser parseListArgs xs
         ('\t':xs) -> runParser parseListArgs xs
@@ -97,8 +95,7 @@ parseListArgs = Parser $ \str ->
                 Just (_, (')':xs)) -> fct var (')' : xs)
                 _ -> Nothing
     where
-        fct var rest =
-            case runParser parseListArgs rest of
+        fct var rest = case runParser parseListArgs rest of
                 Just (var1, rest1) -> Just (var : var1, rest1)
                 Nothing -> Nothing
 

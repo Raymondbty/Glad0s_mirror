@@ -141,8 +141,7 @@ parseCallSep = parseSpaces <* parseChar ',' <* parseSpaces
       <|> parseSpaces
 
 parseListArgsCall :: Parser [Ast]
-parseListArgsCall = Parser $ \str ->
-    case str of
+parseListArgsCall = Parser $ \str -> case str of
         [] -> Nothing
         (')':xs) -> Just ([], ')' : xs)
         _ ->
@@ -164,8 +163,7 @@ parseListCall = Parser $ \str ->
                 Nothing -> Nothing
 
 parse :: Parser [Ast]
-parse = Parser $ \str ->
-    case str of
+parse = Parser $ \str -> case str of
         [] -> Just ([], [])
         ('}':xs) -> Just ([], '}' : xs)
         (';':xs) -> runParser parse xs
@@ -173,8 +171,7 @@ parse = Parser $ \str ->
         ('\t':xs) -> runParser parse xs
         ('\r':xs) -> runParser parse xs
         ('\n':xs) -> runParser parse xs
-        _ ->
-            case runParser parseOr str of
+        _ -> case runParser parseOr str of
                 Just (ast, rest) ->
                     case runParser parse rest of
                         Just (asts, rest1) -> Just (ast : asts, rest1)
