@@ -98,7 +98,11 @@ evalSymbol stack sym ((Var var ast):xs) | var == sym =
         case eval of
             Left err -> return $ Left err
             Right (ast1, env) -> return $ Right (ast1, env)
-evalSymbol stack sym (_:xs) = evalSymbol stack sym xs
+evalSymbol stack sym (x:xs) =
+    evalSymbol stack sym xs >>= \eval ->
+        case eval of
+            Left err -> return $ Left err
+            Right (ast, env) -> return $ Right (ast, x : env)
 
 evalCond :: Int -> Ast -> [Env] -> String -> IO (Either String Bool)
 evalCond stack cond env name =
