@@ -151,6 +151,13 @@ evalDoWhile stack cond branch env =
                         Right True -> evalDoWhile stack cond branch env1
                         Right False -> return $ Right (Void, env1)
 
+evalReturn :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
+evalReturn stack ast env =
+    evalAST stack ast env >>= \eval ->
+        case eval of
+            Left err -> return $ Left err
+            Right (ast1, env1) -> return $ Right (Return ast1, env1)
+
 evalAST :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
 evalAST _ (Define name ast1) env = return $ Right (Void, (Var name ast1) : env)
 evalAST _ (Func name args asts) env =
@@ -164,6 +171,7 @@ evalAST stack (While cond branch) env =
     evalWhile stack cond branch env
 evalAST stack (DoWhile cond branch) env =
     evalDoWhile stack cond branch env
+evalAST stack (Return ast) env = evalReturn stack ast env
 evalAST _ ast env = return $ Right (ast, env)
 
 evalASTS :: Int -> [Ast] -> [Env] -> IO (Ast, [Env])
