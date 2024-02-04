@@ -9,6 +9,7 @@ module IntegrationSpec (spec) where
 
 import System.Process
 import System.Exit (ExitCode(ExitSuccess))
+import System.Exit (ExitCode(ExitFailure))
 import System.Directory
 import System.FilePath ((</>))
 import Test.Hspec
@@ -38,8 +39,8 @@ callTestTwo = do
       inputPath <- defaultFilePath "test_two.scm"
       inputContent <- readFile inputPath
       (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
-      exitCode `shouldBe` ExitSuccess
-      output `shouldBe` "Exception: stack overflow: test2();\n"
+      exitCode `shouldBe` ExitFailure 84
+      output `shouldBe` "Exception: Stack overflow\n"
 
 callTestThree :: Spec
 callTestThree = do
@@ -107,6 +108,28 @@ callTestFibonacci = do
       exitCode `shouldBe` ExitSuccess
       output `shouldBe` "0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n"
 
+callTestReturn :: Spec
+callTestReturn = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_return.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test_return.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "1\n"
+
+callTestDoWhile :: Spec
+callTestDoWhile = do
+  describe "call" $ do
+    it "correctly evaluates the example from examples/test_do_while.scm" $ do
+      exePath <- makeAbsolute "./glados"
+      inputPath <- defaultFilePath "test_do_while.scm"
+      inputContent <- readFile inputPath
+      (exitCode, output, _) <- readProcessWithExitCode exePath [] inputContent
+      exitCode `shouldBe` ExitSuccess
+      output `shouldBe` "a\n"
+
 spec :: Spec
 spec = do
     callTestOne
@@ -116,3 +139,5 @@ spec = do
     callTestFive
     callTestFact
     callTestFibonacci
+    callTestReturn
+    callTestDoWhile
