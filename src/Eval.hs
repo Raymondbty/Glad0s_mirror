@@ -43,19 +43,37 @@ evalCallFunc stack func asts env =
                     Left err -> return $ Left err
                     Right ast -> return $ Right (ast, env)
 
+evalCallFindUser :: String -> [Env] -> Maybe ([String], [Ast])
+evalCallFindUser _ [] = Nothing
+evalCallFindUser name ((FuncVar var params content):_) | var == name =
+    Just (params, content)
+evalCallFindUser name (_:xs) = evalCallFindUser name xs
+
 evalCall :: Int -> String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalCall stack name asts env =
-    evalCallUser stack name asts env >>= \evalUserDefined ->
-        case evalUserDefined of
-            Just (ast, env1) -> return $ Right (ast, env1)
-            Nothing -> evalCallBuiltin stack name asts env
+    case evalCallFindUser name env of
+        Just func -> evalCallUser stack func asts env >>= \evalUserDefined ->
+            case evalUserDefined of
+                Left err -> return $ Left $ "function " ++ name ++ ": " ++ err
+                Right (ast1, env1) -> return $ Right (ast1, env1)
+        Nothing -> evalCallBuiltin stack name asts env
 
-evalCallUser :: Int -> String -> [Ast] -> [Env] -> IO (Maybe (Ast, [Env]))
-evalCallUser _ _ _ [] = return Nothing
-evalCallUser stack name asts ((FuncVar var params content):xs) | var == name =
-    evalASTS stack content ((FuncVar var params content) : xs) >>= \ret ->
-        return $ Just (ret, xs)
-evalCallUser stack name asts (_:xs) = evalCallUser stack name asts xs
+evalCallUserEnv :: [Ast] -> [String] -> Either String [Env]
+evalCallUserEnv [] [] = Right []
+evalCallUserEnv [] _ = Left "not enough params"
+evalCallUserEnv _ [] = Left "too much params"
+evalCallUserEnv (a:as) (p:ps) =
+    case evalCallUserEnv as ps of
+        Left err -> Left err
+        Right env -> Right $ (Var p a) : env
+
+evalCallUser :: Int -> ([String], [Ast]) -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalCallUser stack (params, content) asts env =
+    case evalCallUserEnv asts params of
+        Left err -> return $ Left err
+        Right env1 ->
+            evalASTS stack content (env1 ++ env) >>= \ret ->
+                return $ Right (ret, env)
 
 evalCallBuiltin :: Int -> String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalCallBuiltin stack "add" asts env = evalCallFunc stack add asts env
