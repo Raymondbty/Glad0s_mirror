@@ -72,7 +72,7 @@ evalCallUser stack (params, content) asts env =
     case evalCallUserEnv asts params of
         Left err -> return $ Left err
         Right env1 ->
-            evalASTS stack content (env1 ++ env) >>= \ret ->
+            evalASTS (stack + 1) content (env1 ++ env) >>= \ret ->
                 return $ Right (ret, env)
 
 evalCallBuiltin :: Int -> String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
@@ -98,6 +98,21 @@ evalSymbol stack sym ((Var var ast):xs) | var == sym =
             Right (ast1, env) -> return $ Right (ast1, env)
 evalSymbol stack sym (_:xs) = evalSymbol stack sym xs
 
+evalIf :: Int -> Ast -> [Ast] -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalIf stack cond trueBranch falseBranch env =
+    evalAST stack cond env >>= \evalCond ->
+        case evalCond of
+            Left err -> return $ Left err
+            Right (BoolLiteral True, _) -> evalBranch trueBranch
+            Right (BoolLiteral False, _) -> evalBranch falseBranch
+            Right (IntLiteral 0, _) -> evalBranch falseBranch
+            Right (IntLiteral _, _) -> evalBranch trueBranch
+            _ -> return $ Left "if condition must be an integer or a boolean"
+    where
+        evalBranch branch =
+            evalASTS stack branch env >>= \ret ->
+                    return $ Right (ret, env)
+
 evalAST :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
 evalAST _ (Define name ast1) env = return $ Right (Void, (Var name ast1) : env)
 evalAST _ (Func name args asts) env =
@@ -105,6 +120,8 @@ evalAST _ (Func name args asts) env =
 evalAST stack (Call "print" asts) env = evalCallPrint stack asts env
 evalAST stack (Call name asts) env = evalCall stack name asts env
 evalAST stack (Symbol sym) env = evalSymbol stack sym env
+evalAST stack (If cond trueBranch falseBranch) env =
+    evalIf stack cond trueBranch falseBranch env
 evalAST _ ast env = return $ Right (ast, env)
 
 evalASTS :: Int -> [Ast] -> [Env] -> IO (Ast)
@@ -112,7 +129,7 @@ evalASTS 1000 _ _ = putStrLn "Exception: Stack overflow"
                  >> exitWith (ExitFailure 84)
 evalASTS _ [] _ = return (Void)
 evalASTS stack (x:xs) env =
-    evalAST (stack + 1) x env >>= \evaluation ->
+    evalAST stack x env >>= \evaluation ->
         case evaluation of
             Left err -> (putStrLn $ "Exception: " ++ err)
                 >> exitWith (ExitFailure 84)
