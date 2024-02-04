@@ -72,8 +72,10 @@ evalCallUser stack (params, content) asts env =
     case evalCallUserEnv asts params of
         Left err -> return $ Left err
         Right env1 ->
-            evalASTS (stack + 1) content (env1 ++ env) >>= \ret ->
-                return $ Right (ret, env)
+            evalASTS (stack + 1) content (env1 ++ env) >>= \(ret, _) ->
+                case ret of
+                    (Return ast) -> return $ Right (ast, env)
+                    _ -> return $ Right (ret, env)
 
 evalCallBuiltin :: Int -> String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalCallBuiltin stack "add" asts env = evalCallFunc stack add asts env
@@ -110,8 +112,26 @@ evalIf stack cond trueBranch falseBranch env =
             _ -> return $ Left "if condition must be an integer or a boolean"
     where
         evalBranch branch =
-            evalASTS stack branch env >>= \ret ->
-                    return $ Right (ret, env)
+            evalASTS stack branch env >>= \(ret, env1) ->
+                return $ Right (ret, env1)
+
+evalWhile :: Int -> Ast -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalWhile stack cond branch env =
+    evalAST stack cond env >>= \evalCond ->
+        case evalCond of
+            Left err -> return $ Left err
+            Right (BoolLiteral True, _) -> evalBranch
+            Right (BoolLiteral False, _) -> return $ Right (Void, env)
+            Right (IntLiteral 0, _) -> return $ Right (Void, env)
+            Right (IntLiteral _, _) -> evalBranch
+            _ ->
+                return $ Left "while condition must be an integer or a boolean"
+    where
+        evalBranch =
+            evalASTS stack branch env >>= \(ret, env1) ->
+                case ret of
+                    (Return ast) -> return $ Right (Return ast, env1)
+                    _ -> evalWhile stack cond branch env1
 
 evalAST :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
 evalAST _ (Define name ast1) env = return $ Right (Void, (Var name ast1) : env)
@@ -122,16 +142,18 @@ evalAST stack (Call name asts) env = evalCall stack name asts env
 evalAST stack (Symbol sym) env = evalSymbol stack sym env
 evalAST stack (If cond trueBranch falseBranch) env =
     evalIf stack cond trueBranch falseBranch env
+evalAST stack (While cond branch) env =
+    evalWhile stack cond branch env
 evalAST _ ast env = return $ Right (ast, env)
 
-evalASTS :: Int -> [Ast] -> [Env] -> IO (Ast)
+evalASTS :: Int -> [Ast] -> [Env] -> IO (Ast, [Env])
 evalASTS 1000 _ _ = putStrLn "Exception: Stack overflow"
                  >> exitWith (ExitFailure 84)
-evalASTS _ [] _ = return (Void)
+evalASTS _ [] env = return (Void, env)
 evalASTS stack (x:xs) env =
     evalAST stack x env >>= \evaluation ->
         case evaluation of
             Left err -> (putStrLn $ "Exception: " ++ err)
                 >> exitWith (ExitFailure 84)
-            Right (Return ast, _) -> return ast
+            Right (Return ast, env1) -> return (Return ast, env1)
             Right (_, env1) -> evalASTS stack xs env1
