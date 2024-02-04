@@ -58,24 +58,30 @@ evalCall stack name asts env =
                 Right (ast1, env1) -> return $ Right (ast1, env1)
         Nothing -> evalCallBuiltin stack name asts env
 
-evalCallUserEnv :: [Ast] -> [String] -> Either String [Env]
-evalCallUserEnv [] [] = Right []
-evalCallUserEnv [] _ = Left "not enough params"
-evalCallUserEnv _ [] = Left "too much params"
-evalCallUserEnv (a:as) (p:ps) =
-    case evalCallUserEnv as ps of
-        Left err -> Left err
-        Right env -> Right $ (Var p a) : env
+evalCallUserEnv :: Int -> [Ast] -> [String] -> [Env] -> IO (Either String [Env])
+evalCallUserEnv _ [] [] _ = return $ Right []
+evalCallUserEnv _ [] _ _ = return $ Left "not enough params"
+evalCallUserEnv _ _ [] _ = return $ Left "too much params"
+evalCallUserEnv stack (a:as) (p:ps) env =
+    evalAST stack a env >>= \eval ->
+        case eval of
+            Left err -> return $ Left err
+            Right (ast, _) ->
+                evalCallUserEnv stack as ps env >>= \evalEnv ->
+                    case evalEnv of
+                        Left err -> return $ Left err
+                        Right env1 -> return $ Right $ (Var p ast) : env1
 
 evalCallUser :: Int -> ([String], [Ast]) -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalCallUser stack (params, content) asts env =
-    case evalCallUserEnv asts params of
-        Left err -> return $ Left err
-        Right env1 ->
-            evalASTS (stack + 1) content (env1 ++ env) >>= \(ret, _) ->
-                case ret of
-                    (Return ast) -> return $ Right (ast, env)
-                    _ -> return $ Right (ret, env)
+    evalCallUserEnv stack asts params env >>= \eval ->
+        case eval of
+            Left err -> return $ Left err
+            Right env1 ->
+                evalASTS (stack + 1) content (env1 ++ env) >>= \(ret, _) ->
+                    case ret of
+                        (Return ast) -> return $ Right (ast, env)
+                        _ -> return $ Right (ret, env)
 
 evalCallBuiltin :: Int -> String -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalCallBuiltin stack "add" asts env = evalCallFunc stack add asts env
