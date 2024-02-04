@@ -18,6 +18,7 @@ data Ast = Define String Ast
          | BoolLiteral Bool
          | If Ast [Ast] [Ast]
          | While Ast [Ast]
+         | DoWhile Ast [Ast]
          | Void
          | Return Ast
          deriving Show

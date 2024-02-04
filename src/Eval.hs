@@ -100,16 +100,24 @@ evalSymbol stack sym ((Var var ast):xs) | var == sym =
             Right (ast1, env) -> return $ Right (ast1, env)
 evalSymbol stack sym (_:xs) = evalSymbol stack sym xs
 
+evalCond :: Int -> Ast -> [Env] -> String -> IO (Either String Bool)
+evalCond stack cond env name =
+    evalAST stack cond env >>= \eval ->
+        case eval of
+            Left err -> return $ Left err
+            Right (BoolLiteral True, _) -> return $ Right True
+            Right (BoolLiteral False, _) -> return $ Right False
+            Right (IntLiteral 0, _) -> return $ Right False
+            Right (IntLiteral _, _) -> return $ Right True
+            _ -> return $ Left $ name ++ " condition must be an int or a bool"
+
 evalIf :: Int -> Ast -> [Ast] -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalIf stack cond trueBranch falseBranch env =
-    evalAST stack cond env >>= \evalCond ->
-        case evalCond of
+    evalCond stack cond env "if" >>= \eval ->
+        case eval of
             Left err -> return $ Left err
-            Right (BoolLiteral True, _) -> evalBranch trueBranch
-            Right (BoolLiteral False, _) -> evalBranch falseBranch
-            Right (IntLiteral 0, _) -> evalBranch falseBranch
-            Right (IntLiteral _, _) -> evalBranch trueBranch
-            _ -> return $ Left "if condition must be an integer or a boolean"
+            Right True -> evalBranch trueBranch
+            Right False -> evalBranch falseBranch
     where
         evalBranch branch =
             evalASTS stack branch env >>= \(ret, env1) ->
@@ -117,21 +125,27 @@ evalIf stack cond trueBranch falseBranch env =
 
 evalWhile :: Int -> Ast -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
 evalWhile stack cond branch env =
-    evalAST stack cond env >>= \evalCond ->
-        case evalCond of
+    evalCond stack cond env "while" >>= \eval ->
+        case eval of
             Left err -> return $ Left err
-            Right (BoolLiteral True, _) -> evalBranch
-            Right (BoolLiteral False, _) -> return $ Right (Void, env)
-            Right (IntLiteral 0, _) -> return $ Right (Void, env)
-            Right (IntLiteral _, _) -> evalBranch
-            _ ->
-                return $ Left "while condition must be an integer or a boolean"
-    where
-        evalBranch =
-            evalASTS stack branch env >>= \(ret, env1) ->
+            Right False -> return $ Right (Void, env)
+            Right True ->
+                evalASTS stack branch env >>= \(ret, env1) ->
                 case ret of
                     (Return ast) -> return $ Right (Return ast, env1)
                     _ -> evalWhile stack cond branch env1
+
+evalDoWhile :: Int -> Ast -> [Ast] -> [Env] -> IO (Either String (Ast, [Env]))
+evalDoWhile stack cond branch env =
+    evalASTS stack branch env >>= \(ret, env1) ->
+        case ret of
+            (Return ast) -> return $ Right (Return ast, env1)
+            _ ->
+                evalCond stack cond env "do while" >>= \eval ->
+                    case eval of
+                        Left err -> return $ Left err
+                        Right True -> evalDoWhile stack cond branch env1
+                        Right False -> return $ Right (Void, env1)
 
 evalAST :: Int -> Ast -> [Env] -> IO (Either String (Ast, [Env]))
 evalAST _ (Define name ast1) env = return $ Right (Void, (Var name ast1) : env)
@@ -144,6 +158,8 @@ evalAST stack (If cond trueBranch falseBranch) env =
     evalIf stack cond trueBranch falseBranch env
 evalAST stack (While cond branch) env =
     evalWhile stack cond branch env
+evalAST stack (DoWhile cond branch) env =
+    evalDoWhile stack cond branch env
 evalAST _ ast env = return $ Right (ast, env)
 
 evalASTS :: Int -> [Ast] -> [Env] -> IO (Ast, [Env])

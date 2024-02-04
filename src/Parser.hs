@@ -60,6 +60,10 @@ parseWhileContent ast = Parser $ \str ->
         Just (asts, rest) -> Just (While ast asts, rest)
         Nothing -> Nothing
 
+parseDoWhileContent :: Ast -> [Ast] -> Parser Ast
+parseDoWhileContent ast asts = Parser $ \str ->
+    Just (DoWhile ast asts, str)
+
 parseIfContent :: Ast -> Parser Ast
 parseIfContent ast = Parser $ \str ->
     case runParser parse str of
@@ -89,10 +93,18 @@ parseIfElse =
 
 parseWhile :: Parser Ast
 parseWhile =
-    parseWord "while " *>
+    parseWord "while" *>
     parseSpaces *> parseChar '(' *> parseSpaces *> parseCallOr >>= \ast ->
     parseChar ')' *> parseSpaces *> parseChar '{' *> parseWhileContent
     ast <* parseChar '}'
+
+parseDoWhile :: Parser Ast
+parseDoWhile =
+    parseWord "do" *>
+    parseSpaces *> parseChar '{' *> parse >>= \asts ->
+    parseChar '}' *> parseSpaces *> parseWord "while" *> parseSpaces
+    *> parseChar '(' *> parseSpaces *> parseCallOr >>= \ast ->
+    parseChar ')' *> parseSpaces *> parseDoWhileContent ast asts
 
 parseFuncCallContent :: String -> Parser Ast
 parseFuncCallContent name = Parser $ \str ->
@@ -140,6 +152,7 @@ parseOr = parseInt <* parseSep
       <|> parseIfElse
       <|> parseIf
       <|> parseWhile
+      <|> parseDoWhile <* parseSep
       <|> parseFuncCall <* parseSep
       <|> parseDefine <* parseSep
 
