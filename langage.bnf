@@ -1,6 +1,6 @@
 <program> ::= <statement>+
 
-<statement> ::= <assignment> ";" | <function_declaration> | <function_call> ";"
+<statement> ::= <assignment> ";" | <function_declaration> | <function_call> ";" | <if_statement> | <while_statement>
 
 <assignment> ::= <variable> "=" <expression>
 
@@ -31,3 +31,7 @@
 <parameter_list> ::= <variable> ("," <variable>)* | ε
 
 <argument_list> ::= <expression> ("," <expression>)* | ε
+
+<if_statement> ::= "if" "(" <boolean_expression> ")" "{" <statement>+ "}" ( "else" "{" <statement>+ "}" )?
+
+<while_statement> ::= "while" "(" <boolean_expression> ")" "{" <statement>+ "}"
