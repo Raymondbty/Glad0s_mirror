@@ -16,13 +16,8 @@ data Ast = Define String Ast
          | StringLiteral String
          | Symbol String
          | BoolLiteral Bool
-         | Lambda [String] Ast
-         | Print [Ast]
          | If Ast [Ast] [Ast]
-         | IfRes [Ast]
          | While Ast [Ast]
-         | FuncArgs [String] [Ast]
-         | FuncRes [Ast]
          | Void
          | Return Ast
          deriving Show

@@ -18,7 +18,7 @@ evalCallPrint stack asts env =
     evalCallArgs stack asts env >>= \evalArgs ->
         case evalArgs of
             Left err -> return $ Left err
-            Right asts1 -> (putStrLn $ prettyPrintString (Print asts1))
+            Right asts1 -> (putStrLn $ prettyPrint asts1)
                         >> (return $ Right (Void, env))
 
 evalCallArgs :: Int -> [Ast] -> [Env] -> IO (Either String [Ast])
