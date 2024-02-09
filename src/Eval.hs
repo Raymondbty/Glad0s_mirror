@@ -27,8 +27,8 @@ evalCallArgs stack (x:xs) env =
     evalAST stack x env >>= \evalX ->
         case evalX of
             Left err -> return $ Left err
-            Right (ast, env1) ->
-                evalCallArgs stack xs env1 >>= \evalArgs ->
+            Right (ast, _) ->
+                evalCallArgs stack xs env >>= \evalArgs ->
                 case evalArgs of
                     Left err -> return $ Left err
                     Right asts -> return $ Right $ ast : asts
